@@ -1,0 +1,8 @@
+[run]
+branch = true
+
+[report]
+omit =
+    python/cthreepo/etc/*
+    python/cthreepo/misc/*
+    python/cthreepo/tests/*
