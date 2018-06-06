@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2017-12-05 12:01:21
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2017-12-05 12:19:32
+# @Last Modified time: 2018-05-29 17:30:01
 
 from __future__ import print_function, division, absolute_import
 
@@ -42,10 +42,10 @@ class CthreepoApiError(CthreepoError):
         else:
             message = 'Http response error from Cthreepo API. {0}'.format(message)
 
-        super(CthreepoAPIError, self).__init__(message)
+        super(CthreepoApiError, self).__init__(message)
 
 
-class CthreepoApiAuthError(CthreepoAPIError):
+class CthreepoApiAuthError(CthreepoApiError):
     """A custom exception for API authentication errors"""
     pass
 
