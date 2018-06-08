@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 13:53:46
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-08 08:26:51
+# @Last Modified time: 2018-06-08 09:35:55
 
 from __future__ import print_function, division, absolute_import
 from cthreepo.utils.input import read_schema_from_sql
@@ -45,7 +45,6 @@ class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
 class DbMixin(BaseMixin):
 
     def __init__(self, db_name=None, db_table=None, db_schema=None, **kwargs):
-        print('init dbmixin')
         super(DbMixin, self).__init__(**kwargs)
         self.db_name = db_name
         self.db_schema = db_schema
@@ -83,7 +82,6 @@ class DbMixin(BaseMixin):
 class FileMixin(BaseMixin):
 
     def __init__(self, **kwargs):
-        print('init filemixin')
         super(FileMixin, self).__init__(**kwargs)
         self.fullfile = None
         self.filename = None
@@ -115,7 +113,6 @@ class FitsMixin(FileMixin):
 
     def __init__(self, extension_name=None, extension_wave=None, extension_ivar=None,
                  extension_mask=None, extension_std=None, **kwargs):
-        print('init fitsmixin')
         super(FitsMixin, self).__init__(**kwargs)
         self._extension_name = extension_name
         self._extension_wave = extension_wave

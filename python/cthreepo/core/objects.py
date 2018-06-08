@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 11:19:50
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-08 05:58:00
+# @Last Modified time: 2018-06-08 09:17:44
 
 from __future__ import print_function, division, absolute_import
 import os
@@ -98,6 +98,38 @@ class BaseObject(six.with_metaclass(abc.ABCMeta, object)):
 
 
 class DataCube(BaseObject):
+    """Represents a extension in the DRP logcube file.
+
+    Parameters:
+        name (str):
+            The datacube name. This is the internal name that Marvin will use
+            for this datacube. It is different from the ``extension_name``
+            parameter, which must be identical to the extension name of the
+            datacube in the logcube file.
+        extension_name (str):
+            The FITS extension containing this datacube.
+        extension_wave (str):
+            The FITS extension containing the wavelength for this datacube.
+        extension_ivar (str or None):
+            The extension that contains the inverse variance associated with
+            this datacube, if any.
+        extension_mask (str or None):
+            The extension that contains the mask associated with this
+            datacube, if any.
+        db_table (str):
+            The DB table in which the datacube is stored. Defaults to
+            ``spaxel``.
+        unit (astropy unit or None):
+            The unit for this datacube.
+        scale (float):
+            The scaling factor for the values of the datacube.
+        formats (dict):
+            A dictionary with formats that can be used to represent the
+            datacube. Default ones are ``latex`` and ``string``.
+        description (str):
+            A description for the datacube.
+
+    """
     def __repr__(self):
 
         return '<DataCube {!r}, release={!r}, unit={!r}>'.format(
@@ -105,6 +137,35 @@ class DataCube(BaseObject):
 
 
 class Spectrum(BaseObject):
+    """Represents a extension in the DRP logcube file.
+
+    Parameters:
+        name (str):
+            The spectrum name. This is the internal name that Marvin will use
+            for this spectrum. It is different from the ``extension_name``
+            parameter, which must be identical to the extension name of the
+            spectrum in the logcube file.
+        extension_name (str):
+            The FITS extension containing this spectrum.
+        extension_wave (str):
+            The FITS extension containing the wavelength for this spectrum.
+        extension_std (str):
+            The FITS extension containing the standard deviation for this
+            spectrum.
+        db_table (str):
+            The DB table in which the spectrum is stored. Defaults to
+            ``cube``.
+        unit (astropy unit or None):
+            The unit for this spectrum.
+        scale (float):
+            The scaling factor for the values of the spectrum.
+        formats (dict):
+            A dictionary with formats that can be used to represent the
+            spectrum. Default ones are ``latex`` and ``string``.
+        description (str):
+            A description for the spectrum.
+
+    """
     def __repr__(self):
 
         return '<Spectrum {!r}, release={!r}, unit={!r}>'.format(
