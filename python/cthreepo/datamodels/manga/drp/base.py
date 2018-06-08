@@ -6,12 +6,12 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 22:08:31
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-01 11:28:32
+# @Last Modified time: 2018-06-08 10:05:10
 
 from __future__ import print_function, division, absolute_import
 
 from cthreepo.core.datamodel import DataModelList, BaseDataModel
-from cthreepo.core.objects import DataCubeList, SpectrumList
+from cthreepo.core.lists import DataCubeList, SpectrumList
 
 
 class DRPDataModel(BaseDataModel):

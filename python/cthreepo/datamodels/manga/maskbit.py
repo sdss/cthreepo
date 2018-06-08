@@ -6,18 +6,19 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 14:18:28
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-01 14:18:56
+# @Last Modified time: 2018-06-08 14:23:38
 
 from __future__ import print_function, division, absolute_import
 import pandas as pd
 
 from cthreepo.core.maskbit import Maskbit
+from cthreepo.core.structs import FuzzyDict
 
 __ALL__ = ('get_maskbits')
 
 
 def get_maskbits(release):
-    maskbits = {
+    maskbits = FuzzyDict({
         'MANGA_TARGET1': Maskbit('MANGA_TARGET1', description='Targeting bits for all galaxy targets.'),
         'MANGA_TARGET2': Maskbit('MANGA_TARGET2', description='Targeting bits for all non-galaxy targets.'),
         'MANGA_TARGET3': Maskbit('MANGA_TARGET3', description='Targeting bits for ancillary targets.'),
@@ -30,7 +31,7 @@ def get_maskbits(release):
         'MANGA_DAPSPECMASK': Maskbit('MANGA_DAPSPECMASK',
                                      description='3d cube bitmap used to describe the quality of '
                                      'individual spaxel fits in the DAP model data cube file.')
-        }
+    })
 
     if release == 'MPL-4':
         maskbits['MANGA_DAPPIXMASK'] = MPL4_dappixmask()

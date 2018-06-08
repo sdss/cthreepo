@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 13:53:46
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-08 09:35:55
+# @Last Modified time: 2018-06-08 14:10:21
 
 from __future__ import print_function, division, absolute_import
 from cthreepo.utils.input import read_schema_from_sql
@@ -24,7 +24,7 @@ def check_mixins(cls, **kwargs):
         mixtype = mix.__name__.split('Mix')[0].lower()
         haskwargs = mix.check_kwargs(**kwargs)
         if haskwargs:
-            assert mix in cls.__mro__, 'Must have appropriate mixin {0} to use {1} keywords'.format(mix.__name__, mixtype)
+            assert mix in cls.__bases__, 'Must have appropriate mixin {0} to use {1} keywords'.format(mix.__name__, mixtype)
 
 
 def list_mixins():
@@ -44,25 +44,39 @@ class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
 
 class DbMixin(BaseMixin):
 
-    def __init__(self, db_name=None, db_table=None, db_schema=None, **kwargs):
+    def __init__(self, db_full=None, db_name=None, db_schema=None, db_table=None, db_column=None, **kwargs):
         super(DbMixin, self).__init__(**kwargs)
         self.db_name = db_name
         self.db_schema = db_schema
         self.db_table = db_table
+        self._db_full = db_full
         self._db_column = None
         self._db_column_type = None
+
+        assert db_full or any([db_name, db_table, db_schema, db_column]), 'Must specify at least one db_ parameter'
+        self._set_names()
 
     @classmethod
     def check_kwargs(cls, **kwargs):
         return any(['db_' in k for k in kwargs.keys()])
 
-    @property
-    def db_column(self):
-        return self._db_column
+    def db_full(self, ext=None):
+        dbnames = [self.db_name, self.db_schema, self.db_table, self.db_column(ext=ext)]
+        self._db_full = '.'.join([d for d in dbnames if d])
+        return self._db_full
+
+    def db_column(self, ext=None):
+        if ext:
+            #return self.fits_extension(ext=ext).lower()
+            return ext.lower()
+        else:
+            return self._db_column
 
     @classmethod
     def load_from_sql(cls, sqlfile):
         ''' Create a DataModel from a sql file '''
+        from cthreepo.core.lists import BaseList
+        assert issubclass(cls, BaseList), 'Can only use method on [Object]List classes'
         tables = read_schema_from_sql(sqlfile)
 
     def dump_to_sql(self):
@@ -77,6 +91,20 @@ class DbMixin(BaseMixin):
     def dump_to_models(self):
         ''' Dump DataModel to a models file '''
         pass
+
+    def _set_names(self):
+        ''' Set the database naming conventions '''
+        if self._db_full:
+            ndot = self._db_full.count('.')
+            dbsplit = self._db_full.split('.')
+            if ndot == 0:
+                self._db_column = self._db_full
+            elif ndot == 1:
+                self.db_table, self._db_column = dbsplit
+            elif ndot == 2:
+                self.db_schema, self.db_table, self._db_column = dbsplit
+            elif ndot == 3:
+                self.db_name, self.db_schema, self.db_table, self._db_column = dbsplit
 
 
 class FileMixin(BaseMixin):
@@ -163,21 +191,31 @@ class FitsMixin(FileMixin):
 
         elif ext == 'ivar':
             if not self.has_ivar():
-                raise CthreepoError('no ivar extension for datacube {0!r}'.format(self.full()))
+                raise CthreepoError('no ivar extension for object {0!r}'.format(self.full()))
             return self._extension_ivar.upper()
 
         elif ext == 'mask':
             if not self.has_mask():
-                raise CthreepoError('no mask extension for datacube {0!r}'.format(self.full()))
+                raise CthreepoError('no mask extension for object {0!r}'.format(self.full()))
             return self._extension_mask
 
         elif ext == 'std':
             if not self.has_std():
-                raise CthreepoError('no std extension for spectrum {0!r}'.format(self.full()))
+                raise CthreepoError('no std extension for object {0!r}'.format(self.full()))
             return self._extension_std.upper()
 
         elif ext == 'wave':
             if not self.has_wave():
-                raise CthreepoError('no wave extension for spectrum {0!r}'.format(self.full()))
+                raise CthreepoError('no wave extension for object {0!r}'.format(self.full()))
             return self._extension_wave.upper()
+
+    @classmethod
+    def load_from_fits(cls, sqlfile):
+        ''' Create a DataModel from a FITS file '''
+        from cthreepo.core.lists import BaseList
+        assert issubclass(cls, BaseList), 'Can only use method on [Object]List classes'
+
+    def dump_to_fits(self):
+        ''' Dump DataModel to a FITS file '''
+        pass
 
