@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 11:19:50
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-08 10:04:29
+# @Last Modified time: 2018-06-11 13:21:48
 
 from __future__ import print_function, division, absolute_import
 import six
@@ -15,6 +15,13 @@ import abc
 from cthreepo.core.datamodel import BaseDataModel
 from cthreepo.core import mixins
 from astropy import units as u
+
+
+class FileDbMapper(object):
+    ''' The class controls the mappings between File and Database object representations '''
+
+    def __init__(self):
+        pass
 
 
 class BaseObject(six.with_metaclass(abc.ABCMeta, object)):

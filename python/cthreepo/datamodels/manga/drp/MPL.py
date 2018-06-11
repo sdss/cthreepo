@@ -6,17 +6,17 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 14:19:23
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-08 14:59:49
+# @Last Modified time: 2018-06-11 14:17:50
 
 from __future__ import print_function, division, absolute_import
 from astropy import units as u
 
+from cthreepo.core.units import spaxel_unit
 from cthreepo.core.objects import DataCube, Spectrum
 from cthreepo.core.mixins import DbMixin, FitsMixin
 from cthreepo.datamodels.manga.drp.base import DRPDataModel, DRPDataModelList
 from cthreepo.datamodels.manga.maskbit import get_maskbits
 
-spaxel_unit = u.Unit('spaxel', represents=u.pixel, doc='A spectral pixel', parse_strict='silent')
 db_schema = 'mangadb.mangadatadb'
 
 
@@ -25,6 +25,14 @@ class MangaDataCube(DataCube, DbMixin, FitsMixin):
 
 
 class MangaSpectrum(Spectrum, DbMixin, FitsMixin):
+    pass
+
+
+class TestSpectrum(Spectrum, DbMixin):
+    pass
+
+
+class TestFSpectrum(Spectrum, FitsMixin):
     pass
 
 
@@ -37,6 +45,13 @@ MPL4_datacubes = [
 
 MPL4_spectra = [
     MangaSpectrum('spectral_resolution', extension_name='SPECRES', extension_wave='WAVE', extension_std='SPECRESD',
+                  unit=u.Angstrom, scale=1, formats={'string': 'Median spectral resolution'},
+                  description='Median spectral resolution as a function of wavelength '
+                              'for the fibers in this IFU', db_full=db_schema + '.cube.specres')
+]
+
+test_spectra = [
+    MangaSpectrum('spectral_resolution',
                   unit=u.Angstrom, scale=1, formats={'string': 'Median spectral resolution'},
                   description='Median spectral resolution as a function of wavelength '
                               'for the fibers in this IFU', db_full=db_schema + '.cube.specres')

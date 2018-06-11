@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 16:28:50
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-01 18:08:36
+# @Last Modified time: 2018-06-08 19:41:04
 
 from __future__ import print_function, division, absolute_import
 import itertools
@@ -19,9 +19,6 @@ from cthreepo.core.datamodel import DataModelList, BaseDataModel
 
 __ALL__ = ('DAPDataModelList', 'DAPDataModel', 'Bintype', 'Template', 'Property',
            'MultiChannelProperty', 'spaxel', 'datamodel', 'Channel')
-
-
-spaxel = u.Unit('spaxel', represents=u.pixel, doc='A spectral pixel', parse_strict='silent')
 
 
 class DAPDataModel(BaseDataModel):

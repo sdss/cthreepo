@@ -6,16 +6,15 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-08 15:11:48
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-08 15:12:03
+# @Last Modified time: 2018-06-08 19:40:25
 
 from __future__ import print_function, division, absolute_import
 from astropy import units as u
 
+from cthreepo.core.units import spaxel_unit
 from cthreepo.core.objects import DataCube
 from cthreepo.core.mixins import FitsMixin
 from cthreepo.datamodels.muse.base import MuseDataModel, MuseDataModelList
-
-spaxel_unit = u.Unit('spaxel', represents=u.pixel, doc='A spectral pixel', parse_strict='silent')
 
 
 class MuseDataCube(DataCube, FitsMixin):
