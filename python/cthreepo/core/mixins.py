@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 13:53:46
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-18 17:12:23
+# @Last Modified time: 2018-06-18 17:14:44
 
 from __future__ import print_function, division, absolute_import
 from cthreepo.utils.input import read_schema_from_sql
@@ -147,7 +147,7 @@ class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
 
     @mixable
     @abc.abstractmethod
-    def full(self, value):
+    def full(self, value=None):
         return value
 
     @mixable
