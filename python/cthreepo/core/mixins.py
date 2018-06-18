@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 13:53:46
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-12 18:46:39
+# @Last Modified time: 2018-06-18 17:12:23
 
 from __future__ import print_function, division, absolute_import
 from cthreepo.utils.input import read_schema_from_sql
@@ -15,27 +15,11 @@ import six
 import abc
 import sys
 import inspect
-import contextlib
+from functools import wraps
+from collections import defaultdict
 
 
 CORE_VARS = ['ivar', 'std', 'mask', 'wave']
-
-
-@contextlib.contextmanager
-def mix(self, mixin):
-    ''' Context manager to look up which mixin is being accessed '''
-
-    # check for mixing and if mixin is not a core variable
-    if mixin and mixin not in CORE_VARS:
-        assert mixin.lower() in MIXINS.keys(), 'mixin must be one of {0}'.format(MIXINS.keys())
-        mix_obj = MIXINS[mixin]
-        yield mix_obj
-    else:
-        mix_bases = [obj for obj in self.__class__.__bases__ if 'Mixin' in obj.__name__]
-        if len(mix_bases) == 1:
-            yield mix_bases[0]
-        else:
-            raise ValueError('Mixin ambiguity.  Please specify one of {0}!'.format(MIXINS.keys()))
 
 
 def check_mixins(cls, **kwargs):
@@ -54,6 +38,94 @@ def list_mixins():
     return mixin
 
 
+def _flatten(l):
+    ''' Flatten a nested list '''
+    res = []
+    for item in l:
+        if isinstance(item, list):
+            res.extend(_flatten(item))
+        else:
+            res.append(item)
+    return res
+
+
+def _get_mixin_type(mixin):
+    return mixin.__name__.lower().split('mixin')[0]
+
+
+def mixable(func):
+    '''Decorator that checks if ..'''
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        name = func.__name__.split('_')[1] if 'has_' in func.__name__ else func.__name__
+        inst = args[0]
+        value = args[1] if len(args) > 1 else None
+        # get the mixin bases from the instance
+        mix_bases = [obj for obj in inst.__class__.__bases__ if 'Mixin' in obj.__name__]
+
+        if value:
+            # flatten the list
+            res = _flatten(value)
+            # the first value should be the mixin key
+            mix_key = res.pop(0)
+
+            # the input value is not a valid mixin
+            assert mix_key is None or mix_key.lower() in MIXINS.keys(),\
+                ('Input value {0} must be one of valid {1}'.format(mix_key, list(MIXINS.keys())))
+
+            # check if mixin key is an available class
+            if mix_key and mix_key.lower() in MIXINS.keys():
+                if MIXINS[mix_key] in mix_bases:
+                    # find the appropriate index in the bases list
+                    mix_idx = mix_bases.index(MIXINS[mix_key])
+                    if res:
+                        value = res[mix_idx]
+                else:
+                    # the input Mixin value is not one of the instance bases
+                    raise ValueError('Requested mixin {0} is not available for {1}'.format(mix_key, name))
+            elif mix_key is None:
+                # there is no mixin key present as input
+                if len(res) == 1:
+                    value = res[0]
+                else:
+                    if name in CORE_VARS:
+                        value = any(res) or None
+                    else:
+                        value = res
+
+        args = (inst, value)
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def _make_defaultdict(base, keys):
+    dd = defaultdict(base)
+    __ = [dd[key] for key in keys]
+    return dd
+
+
+class MixMeta(abc.ABCMeta):
+
+    def __call__(cls, *args, **kwargs):
+
+        coredict = _make_defaultdict(dict, CORE_VARS)
+        setattr(cls, '_core_vars', coredict)
+        mixins = [obj for obj in cls.__bases__ if 'Mixin' in obj.__name__]
+        newclass = super(MixMeta, cls).__call__(*args, **kwargs)
+        if len(mixins) > 1:
+            assert 'name' not in kwargs, 'Multiple mixins found.  name is too ambiguous'
+            assert 'ivar' not in kwargs, 'Multiple mixins found.  ivar is too ambiguous'
+            for mix in mixins:
+                mixname = mix.__name__.lower().split('mixin')[0]
+                setattr(newclass, '{0}_extension'.format(mixname), mix(**kwargs)._extension)
+        elif len(mixins) == 1:
+            mix = mixins[0]
+            setattr(newclass, 'extension', mix(**kwargs)._extension)
+
+        return newclass
+
+
 class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
 
     def __new__(cls, *args, **kwargs):
@@ -63,7 +135,7 @@ class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
             for core in CORE_VARS:
                 assert core not in args, 'Multiple mixins found. {0} is too ambiguous'.format(core)
 
-        return super(BaseMixin, cls).__new__(cls, *args, **kwargs)
+        return super(BaseMixin, cls).__new__(cls)
 
     def __init__(self, *args, **kwargs):
         pass
@@ -73,45 +145,54 @@ class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
     def check_kwargs(cls, **kwargs):
         pass
 
+    @mixable
     @abc.abstractmethod
-    def _full(self):
-        ''' Display the full name '''
+    def full(self, value):
+        return value
+
+    @mixable
+    @abc.abstractmethod
+    def has_ivar(self, value=None):
+        return value is not None
+
+    @mixable
+    @abc.abstractmethod
+    def has_std(self, value=None):
+        return value is not None
+
+    @mixable
+    @abc.abstractmethod
+    def has_mask(self, value=None):
+        return value is not None
+
+    @mixable
+    @abc.abstractmethod
+    def has_wave(self, value=None):
+        return value is not None
 
     @abc.abstractmethod
-    def _ivar(self):
-        pass
+    def _extension(self, ext=None, name=None, ivar=None, std=None, mask=None, wave=None):
 
-    @abc.abstractmethod
-    def _std(self):
-        pass
+        assert ext is None or ext in self._core_vars, 'invalid extension'
 
-    @abc.abstractmethod
-    def _mask(self):
-        pass
-
-    @abc.abstractmethod
-    def _wave(self):
-        pass
-
-    def full(self, mixin=None, **kwargs):
-        with mix(self, mixin) as m:
-            return m._full(self, **kwargs)
-
-    def has_ivar(self, mixin=None):
-        with mix(self, mixin) as m:
-            return m._ivar(self)
-
-    def has_std(self, mixin=None):
-        with mix(self, mixin) as m:
-            return m._std(self)
-
-    def has_mask(self, mixin=None):
-        with mix(self, mixin) as m:
-            return m._mask(self)
-
-    def has_wave(self, mixin=None):
-        with mix(self, mixin) as m:
-            return m._wave(self)
+        if ext is None:
+            return name
+        elif ext == 'ivar':
+            if not self.has_ivar():
+                raise CthreepoError('no ivar extension for object {0!r}'.format(self.full()))
+            return ivar
+        elif ext == 'std':
+            if not self.has_std():
+                raise CthreepoError('no std extension for object {0!r}'.format(self.full()))
+            return std
+        elif ext == 'mask':
+            if not self.has_mask():
+                raise CthreepoError('no mask extension for object {0!r}'.format(self.full()))
+            return mask
+        elif ext == 'wave':
+            if not self.has_wave():
+                raise CthreepoError('no wave extension for object {0!r}'.format(self.full()))
+            return wave
 
 
 class DbMixin(BaseMixin):
@@ -138,10 +219,10 @@ class DbMixin(BaseMixin):
     def check_kwargs(cls, **kwargs):
         return any(['db_' in k for k in kwargs.keys()])
 
-    def _full(self, ext=None):
-        dbnames = [self.db_name, self.db_schema, self.db_table, self.db_extension(ext=ext)]
+    def full(self, value=None):
+        dbnames = [self.db_name, self.db_schema, self.db_table, self.db_column]
         self._db_full = '.'.join([d for d in dbnames if d])
-        return self._db_full
+        return super(DbMixin, self).full([value, self._db_full])
 
     @property
     def db_column(self):
@@ -181,53 +262,22 @@ class DbMixin(BaseMixin):
             elif ndot == 3:
                 self.db_name, self.db_schema, self.db_table, self._db_column = dbsplit
 
-    def db_extension(self, ext=None):
-        """Returns the DB extension name."""
+    def _extension(self, ext=None, **kwargs):
+        ''' Return the DB extension nmae '''
+        return super(DbMixin, self)._extension(ext=ext, name=self._db_full, ivar=self._db_ivar,
+                                               std=self._db_std, mask=self._db_mask, wave=self._db_wave)
 
-        assert ext is None or ext in self._core_vars, 'invalid extension'
+    def has_ivar(self, value=None):
+        return super(DbMixin, self).has_ivar([value, self._db_ivar])
 
-        if ext is None:
-            return self._db_column
+    def has_std(self, value=None):
+        return super(DbMixin, self).has_std([value, self._db_std])
 
-        elif ext == 'ivar':
-            if not self.has_ivar('db'):
-                raise CthreepoError('no ivar extension for object {0!r}'.format(self._full()))
-            return self._db_ivar
+    def has_mask(self, value=None):
+        return super(DbMixin, self).has_mask([value, self._db_mask])
 
-        elif ext == 'mask':
-            if not self.has_mask('db'):
-                raise CthreepoError('no mask extension for object {0!r}'.format(self._full()))
-            return self._db_mask
-
-        elif ext == 'std':
-            if not self.has_std('db'):
-                raise CthreepoError('no std extension for object {0!r}'.format(self._full()))
-            return self._db_std
-
-        elif ext == 'wave':
-            if not self.has_wave('db'):
-                raise CthreepoError('no wave extension for object {0!r}'.format(self._full()))
-            return self._db_wave
-
-    def _ivar(self):
-        """Returns True is the datacube has an ivar extension."""
-
-        return self._db_ivar is not None
-
-    def _mask(self):
-        """Returns True is the datacube has an mask extension."""
-
-        return self._db_mask is not None
-
-    def _std(self):
-        """Returns True is the datacube has an std extension."""
-
-        return self._db_std is not None
-
-    def _wave(self):
-        """Returns True is the datacube has an wave extension."""
-
-        return self._db_wave is not None
+    def has_wave(self, value=None):
+        return super(DbMixin, self).has_wave([value, self._db_wave])
 
 
 class FileMixin(BaseMixin):
@@ -281,58 +331,28 @@ class FitsMixin(FileMixin):
 
         return self._full.lower()
 
-    def _full(self, **kwargs):
-        """Returns the name string."""
+    def full(self, value=None):
+        name = self._extension_name.lower() if self._extension_name else ''
+        return super(FitsMixin, self).full([value, name])
 
-        return self._extension_name.lower() if self._extension_name else ''
+    def has_ivar(self, value=None):
+        return super(FitsMixin, self).has_ivar([value, self._extension_ivar])
 
-    def _ivar(self):
-        """Returns True is the datacube has an ivar extension."""
+    def has_std(self, value=None):
+        return super(FitsMixin, self).has_std([value, self._extension_std])
 
-        return self._extension_ivar is not None
+    def has_mask(self, value=None):
+        return super(FitsMixin, self).has_mask([value, self._extension_mask])
 
-    def _mask(self):
-        """Returns True is the datacube has an mask extension."""
+    def has_wave(self, value=None):
+        return super(FitsMixin, self).has_wave([value, self._extension_wave])
 
-        return self._extension_mask is not None
+    def _extension(self, ext=None, **kwargs):
+        ''' Returns the FITS extension name'''
 
-    def _std(self):
-        """Returns True is the datacube has an std extension."""
-
-        return self._extension_std is not None
-
-    def _wave(self):
-        """Returns True is the datacube has an wave extension."""
-
-        return self._extension_wave is not None
-
-    def fits_extension(self, ext=None):
-        """Returns the FITS extension name."""
-
-        assert ext is None or ext in self._core_vars, 'invalid extension'
-
-        if ext is None:
-            return self._extension_name.upper()
-
-        elif ext == 'ivar':
-            if not self.has_ivar('fits'):
-                raise CthreepoError('no ivar extension for object {0!r}'.format(self._full()))
-            return self._extension_ivar.upper()
-
-        elif ext == 'mask':
-            if not self.has_mask('fits'):
-                raise CthreepoError('no mask extension for object {0!r}'.format(self._full()))
-            return self._extension_mask
-
-        elif ext == 'std':
-            if not self.has_std('fits'):
-                raise CthreepoError('no std extension for object {0!r}'.format(self._full()))
-            return self._extension_std.upper()
-
-        elif ext == 'wave':
-            if not self.has_wave('fits'):
-                raise CthreepoError('no wave extension for object {0!r}'.format(self._full()))
-            return self._extension_wave.upper()
+        return super(FitsMixin, self)._extension(ext=ext, name=self._extension_name,
+                                                 ivar=self._extension_ivar, std=self._extension_std,
+                                                 mask=self._extension_mask, wave=self._extension_wave)
 
     @classmethod
     def load_from_fits(cls, fitsfile):

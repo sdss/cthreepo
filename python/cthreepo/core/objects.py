@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 11:19:50
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-12 18:23:41
+# @Last Modified time: 2018-06-18 16:15:22
 
 from __future__ import print_function, division, absolute_import
 import six
@@ -17,7 +17,7 @@ from cthreepo.core import mixins
 from astropy import units as u
 
 
-class BaseObject(six.with_metaclass(abc.ABCMeta, object)):
+class BaseObject(six.with_metaclass(mixins.MixMeta, object)):
     """Represents a extension in the DRP logcube file.
 
     """
