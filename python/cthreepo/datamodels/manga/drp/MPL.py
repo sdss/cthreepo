@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 14:19:23
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-11 14:17:50
+# @Last Modified time: 2018-06-13 00:49:30
 
 from __future__ import print_function, division, absolute_import
 from astropy import units as u
@@ -45,13 +45,6 @@ MPL4_datacubes = [
 
 MPL4_spectra = [
     MangaSpectrum('spectral_resolution', extension_name='SPECRES', extension_wave='WAVE', extension_std='SPECRESD',
-                  unit=u.Angstrom, scale=1, formats={'string': 'Median spectral resolution'},
-                  description='Median spectral resolution as a function of wavelength '
-                              'for the fibers in this IFU', db_full=db_schema + '.cube.specres')
-]
-
-test_spectra = [
-    MangaSpectrum('spectral_resolution',
                   unit=u.Angstrom, scale=1, formats={'string': 'Median spectral resolution'},
                   description='Median spectral resolution as a function of wavelength '
                               'for the fibers in this IFU', db_full=db_schema + '.cube.specres')
