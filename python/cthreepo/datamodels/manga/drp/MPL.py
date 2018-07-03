@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 14:19:23
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-13 00:49:30
+# @Last Modified time: 2018-06-18 17:17:17
 
 from __future__ import print_function, division, absolute_import
 from astropy import units as u
@@ -25,14 +25,6 @@ class MangaDataCube(DataCube, DbMixin, FitsMixin):
 
 
 class MangaSpectrum(Spectrum, DbMixin, FitsMixin):
-    pass
-
-
-class TestSpectrum(Spectrum, DbMixin):
-    pass
-
-
-class TestFSpectrum(Spectrum, FitsMixin):
     pass
 
 

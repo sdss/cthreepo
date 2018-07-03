@@ -6,21 +6,31 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-01 17:44:36
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-01 17:48:18
+# @Last Modified time: 2018-06-19 12:18:09
 
 from __future__ import print_function, division, absolute_import
 
 import itertools
 from astropy import units as u
 
+from cthreepo.core.units import spaxel_unit
+from cthreepo.core.objects import Property, MultiChannelProperty, Channel
+from cthreepo.core.mixins import DbMixin, FitsMixin
 from cthreepo.datamodels.manga.maskbit import get_maskbits
-from cthreepo.datamodels.manga.dap.base import (Bintype, Template, DAPDataModel, Property,
-                                                MultiChannelProperty, spaxel, Channel)
+from cthreepo.datamodels.manga.dap.base import Bintype, Template, DAPDataModel
 
 
 def gen():
     for i in itertools.count():
         yield i
+
+
+class MangaProperty(Property, DbMixin, FitsMixin):
+    pass
+
+
+class MangaMultiProperty(MultiChannelProperty, DbMixin, FitsMixin):
+    pass
 
 
 M11_STELIB_ZSOL = Template('M11-STELIB-ZSOL', n=0,
@@ -34,10 +44,10 @@ STON = Bintype('STON', n=1, description='Bin to S/N=30; only include S/N>5 spect
                                         'fit V, sigma, h3, h4 for stellar kinematics.')
 
 
-binid_property = Property('binid', ivar=False, mask=False, channel=None,
-                          formats={'string': 'Bin ID'},
-                          description='ID number for the bin for which the pixel value was '
-                                      'calculated; bins are sorted by S/N.')
+binid_property = MangaProperty('binid', ivar=False, mask=False, channel=None,
+                               formats={'string': 'Bin ID'},
+                               description='ID number for the bin for which the pixel value was '
+                                           'calculated; bins are sorted by S/N.')
 
 i = gen()
 MPL4_emline_channels = [
@@ -103,50 +113,50 @@ MPL4_specindex_channels = [
 
 
 MPL4_maps = [
-    MultiChannelProperty('emline_gflux', ivar=True, mask=True, channels=MPL4_emline_channels,
-                         unit=u.erg / u.s / (u.cm ** 2) / spaxel, scale=1e-17,
+    MangaMultiProperty('emline_gflux', ivar=True, mask=True, channels=MPL4_emline_channels,
+                         unit=u.erg / u.s / (u.cm ** 2) / spaxel_unit, scale=1e-17,
                          formats={'string': 'Emission line Gaussian flux'},
                          description='Fluxes of emission lines based on a single Gaussian fit.'),
-    MultiChannelProperty('emline_gvel', ivar=True, mask=True, channels=MPL4_emline_channels,
+    MangaMultiProperty('emline_gvel', ivar=True, mask=True, channels=MPL4_emline_channels,
                          unit=u.km / u.s,
                          formats={'string': 'Emission line Gaussian velocity'},
                          description='Doppler velocity shifts for emission lines relative to '
                                      'the NSA redshift based on a single Gaussian fit.'),
-    MultiChannelProperty('emline_gsigma', ivar=True, mask=True, channels=MPL4_emline_channels,
+    MangaMultiProperty('emline_gsigma', ivar=True, mask=True, channels=MPL4_emline_channels,
                          unit=u.km / u.s,
                          formats={'string': 'Emission line Gaussian sigma',
                                   'latex': r'Emission line Gaussian $\sigma$'},
                          description='Velocity dispersions of emission lines based on a '
                                      'single Gaussian fit.'),
-    MultiChannelProperty('emline_instsigma', ivar=False, mask=False,
+    MangaMultiProperty('emline_instsigma', ivar=False, mask=False,
                          channels=MPL4_emline_channels,
                          unit=u.km / u.s,
                          formats={'string': 'Emission line instrumental sigma',
                                   'latex': r'Emission line instrumental $\sigma$'},
                          description='Instrumental velocity dispersion at the line centroids '
                                      'for emission lines (based on a single Gaussian fit.'),
-    MultiChannelProperty('emline_ew', ivar=True, mask=True, channels=MPL4_emline_channels,
+    MangaMultiProperty('emline_ew', ivar=True, mask=True, channels=MPL4_emline_channels,
                          unit=u.Angstrom,
                          formats={'string': 'Emission line EW'},
                          description='Equivalent widths for emission lines based on a '
                                      'single Gaussian fit.'),
-    MultiChannelProperty('emline_sflux', ivar=True, mask=True, channels=MPL4_emline_channels,
-                         unit=u.erg / u.s / (u.cm ** 2) / spaxel, scale=1e-17,
+    MangaMultiProperty('emline_sflux', ivar=True, mask=True, channels=MPL4_emline_channels,
+                         unit=u.erg / u.s / (u.cm ** 2) / spaxel_unit, scale=1e-17,
                          formats={'string': 'Emission line summed flux'},
                          description='Fluxes for emission lines based on integrating the '
                                      'flux over a set of passbands.'),
-    Property('stellar_vel', ivar=True, mask=True, channel=None,
-             unit=u.km / u.s,
-             formats={'string': 'Stellar velocity'},
-             description='Stellar velocity measurements.'),
-    Property('stellar_sigma', ivar=True, mask=True, channel=None,
-             unit=u.km / u.s,
-             formats={'string': 'Stellar velocity dispersion', 'latex': r'Stellar $\sigma$'},
-             description='Stellar velocity dispersion measurements.'),
-    MultiChannelProperty('specindex', ivar=True, mask=True,
-                         formats={'string': 'Spectral index'},
-                         channels=MPL4_specindex_channels,
-                         description='Measurements of spectral indices.'),
+    MangaProperty('stellar_vel', ivar=True, mask=True, channel=None,
+                  unit=u.km / u.s,
+                  formats={'string': 'Stellar velocity'},
+                  description='Stellar velocity measurements.'),
+    MangaProperty('stellar_sigma', ivar=True, mask=True, channel=None,
+                  unit=u.km / u.s,
+                  formats={'string': 'Stellar velocity dispersion', 'latex': r'Stellar $\sigma$'},
+                  description='Stellar velocity dispersion measurements.'),
+    MangaMultiProperty('specindex', ivar=True, mask=True,
+                       formats={'string': 'Spectral index'},
+                       channels=MPL4_specindex_channels,
+                       description='Measurements of spectral indices.'),
     binid_property
 ]
 

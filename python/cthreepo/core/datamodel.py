@@ -6,13 +6,15 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 11:31:19
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-05-31 00:23:04
+# @Last Modified time: 2018-07-02 21:17:27
 
 from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 import six
 import copy as copy_mod
 import abc
+from cthreepo.utils.input import read_schema_from_sql
+
 
 
 class MetaDataModel(type):
@@ -111,4 +113,36 @@ class BaseDataModel(six.with_metaclass(abc.ABCMeta, object)):
 
     def __getitem__(self, value):
         return self == value
+
+    @classmethod
+    def load_from_sql(cls, sqlfile, db=None):
+        ''' Create a DataModel from a sql file '''
+
+        from cthreepo.core.mixins import DbMixin
+        from cthreepo.core.objects import Property
+        from cthreepo.core.lists import PropertyList
+
+        db = 'sdss5b' if not db else db
+        tables = read_schema_from_sql(sqlfile)
+
+        propclass = type(cls.__name__, (Property, DbMixin,), {})
+        properties = []
+        for col in tables['columns']:
+            prop = propclass(col, db_name=db, db_schema=tables['schema'], db_table=tables['table'])
+            properties.append(prop)
+        cls.properties = PropertyList(properties)
+        return cls
+
+    def dump_to_sql(self):
+        ''' Dump DataModel to a sql file '''
+        pass
+
+    @classmethod
+    def load_from_models(cls, modelsfile):
+        ''' Create a DataModel from a db models file '''
+        pass
+
+    def dump_to_models(self):
+        ''' Dump DataModel to a models file '''
+        pass
 

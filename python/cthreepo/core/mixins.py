@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 13:53:46
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-18 17:14:44
+# @Last Modified time: 2018-06-20 09:37:14
 
 from __future__ import print_function, division, absolute_import
 from cthreepo.utils.input import read_schema_from_sql
@@ -32,9 +32,11 @@ def check_mixins(cls, **kwargs):
             assert mix in cls.__bases__, 'Must have appropriate mixin {0} to use {1} keywords'.format(mix.__name__, mixtype)
 
 
-def list_mixins():
+def list_mixins(by_name=None):
     ''' Get a list of all Mixin classes '''
     mixin = MIXINS.values()
+    if by_name:
+        mixin = [_get_mixin_type(mix) for mix in mixin]
     return mixin
 
 
@@ -113,6 +115,7 @@ class MixMeta(abc.ABCMeta):
         setattr(cls, '_core_vars', coredict)
         mixins = [obj for obj in cls.__bases__ if 'Mixin' in obj.__name__]
         newclass = super(MixMeta, cls).__call__(*args, **kwargs)
+        #kwargs['name'] = args[0]
         if len(mixins) > 1:
             assert 'name' not in kwargs, 'Multiple mixins found.  name is too ambiguous'
             assert 'ivar' not in kwargs, 'Multiple mixins found.  ivar is too ambiguous'
@@ -120,6 +123,7 @@ class MixMeta(abc.ABCMeta):
                 mixname = mix.__name__.lower().split('mixin')[0]
                 setattr(newclass, '{0}_extension'.format(mixname), mix(**kwargs)._extension)
         elif len(mixins) == 1:
+            print('mixmeta', cls, args, kwargs)
             mix = mixins[0]
             setattr(newclass, 'extension', mix(**kwargs)._extension)
 
@@ -179,19 +183,19 @@ class BaseMixin(six.with_metaclass(abc.ABCMeta, object)):
             return name
         elif ext == 'ivar':
             if not self.has_ivar():
-                raise CthreepoError('no ivar extension for object {0!r}'.format(self.full()))
+                raise CthreepoError('no ivar extension for object {0!r}'.format(self.name))
             return ivar
         elif ext == 'std':
             if not self.has_std():
-                raise CthreepoError('no std extension for object {0!r}'.format(self.full()))
+                raise CthreepoError('no std extension for object {0!r}'.format(self.name))
             return std
         elif ext == 'mask':
             if not self.has_mask():
-                raise CthreepoError('no mask extension for object {0!r}'.format(self.full()))
+                raise CthreepoError('no mask extension for object {0!r}'.format(self.name))
             return mask
         elif ext == 'wave':
             if not self.has_wave():
-                raise CthreepoError('no wave extension for object {0!r}'.format(self.full()))
+                raise CthreepoError('no wave extension for object {0!r}'.format(self.name))
             return wave
 
 
@@ -228,25 +232,25 @@ class DbMixin(BaseMixin):
     def db_column(self):
         return self._db_column
 
-    @classmethod
-    def load_from_sql(cls, sqlfile):
-        ''' Create a DataModel from a sql file '''
-        from cthreepo.core.lists import BaseList
-        assert issubclass(cls, BaseList), 'Can only use method on [Object]List classes'
-        tables = read_schema_from_sql(sqlfile)
+    # @classmethod
+    # def load_from_sql(cls, sqlfile):
+    #     ''' Create a DataModel from a sql file '''
+    #     from cthreepo.core.lists import BaseList
+    #     assert issubclass(cls, BaseList), 'Can only use method on [Object]List classes'
+    #     tables = read_schema_from_sql(sqlfile)
 
-    def dump_to_sql(self):
-        ''' Dump DataModel to a sql file '''
-        pass
+    # def dump_to_sql(self):
+    #     ''' Dump DataModel to a sql file '''
+    #     pass
 
-    @classmethod
-    def load_from_models(cls, modelsfile):
-        ''' Create a DataModel from a db models file '''
-        pass
+    # @classmethod
+    # def load_from_models(cls, modelsfile):
+    #     ''' Create a DataModel from a db models file '''
+    #     pass
 
-    def dump_to_models(self):
-        ''' Dump DataModel to a models file '''
-        pass
+    # def dump_to_models(self):
+    #     ''' Dump DataModel to a models file '''
+    #     pass
 
     def _set_names(self):
         ''' Set the database naming conventions '''
@@ -261,6 +265,10 @@ class DbMixin(BaseMixin):
                 self.db_schema, self.db_table, self._db_column = dbsplit
             elif ndot == 3:
                 self.db_name, self.db_schema, self.db_table, self._db_column = dbsplit
+
+        # set the db column if not set already
+        if not self._db_column and hasattr(self, 'name'):
+            self._db_column = self.name
 
     def _extension(self, ext=None, **kwargs):
         ''' Return the DB extension nmae '''
