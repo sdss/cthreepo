@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-06-08 10:02:14
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-20 09:13:33
+# @Last Modified time: 2018-07-02 22:16:23
 
 from __future__ import print_function, division, absolute_import
 import os
@@ -23,7 +23,6 @@ class BaseList(six.with_metaclass(MetaDataModel, FuzzyList)):
     """Creates a list containing models and their representation."""
 
     def __new__(cls, *args, **kwargs):
-        print("BaseList new", cls, cls.__bases__)
         return super(BaseList, cls).__new__(cls)
 
     def __init__(self, the_list, parent=None):

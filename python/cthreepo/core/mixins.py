@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 13:53:46
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-06-20 09:37:14
+# @Last Modified time: 2018-09-20 17:46:19
 
 from __future__ import print_function, division, absolute_import
 from cthreepo.utils.input import read_schema_from_sql
@@ -14,6 +14,7 @@ from cthreepo.core.exceptions import CthreepoError
 import six
 import abc
 import sys
+import os
 import inspect
 from functools import wraps
 from collections import defaultdict
@@ -123,7 +124,6 @@ class MixMeta(abc.ABCMeta):
                 mixname = mix.__name__.lower().split('mixin')[0]
                 setattr(newclass, '{0}_extension'.format(mixname), mix(**kwargs)._extension)
         elif len(mixins) == 1:
-            print('mixmeta', cls, args, kwargs)
             mix = mixins[0]
             setattr(newclass, 'extension', mix(**kwargs)._extension)
 
@@ -292,10 +292,15 @@ class FileMixin(BaseMixin):
 
     def __init__(self, **kwargs):
         super(FileMixin, self).__init__(**kwargs)
-        self.fullfile = None
-        self.filename = None
-        self.filepath = None
-        self.filetype = None
+        self.fullfile = kwargs.get('fullfile', None)
+        self.filename = kwargs.get('filename', None)
+        self.filepath = kwargs.get('filepath', None)
+        self.filetype = kwargs.get('filetype', None)
+
+        if self.fullfile:
+            self.filename = os.path.basename(self.fullfile)
+            self.filepath = os.path.dirname(self.fullfile)
+            self.filetype = os.path.basename(self.fullfile).split('.', 1)
 
 
 class ImageMixin(FileMixin):

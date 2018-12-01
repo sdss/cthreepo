@@ -6,7 +6,7 @@
 # @Author: Brian Cherinka
 # @Date:   2018-05-30 11:31:19
 # @Last modified by:   Brian Cherinka
-# @Last Modified time: 2018-07-02 21:17:27
+# @Last Modified time: 2018-09-20 18:50:56
 
 from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
@@ -14,7 +14,6 @@ import six
 import copy as copy_mod
 import abc
 from cthreepo.utils.input import read_schema_from_sql
-
 
 
 class MetaDataModel(type):
@@ -115,23 +114,32 @@ class BaseDataModel(six.with_metaclass(abc.ABCMeta, object)):
         return self == value
 
     @classmethod
-    def load_from_sql(cls, sqlfile, db=None):
+    def load_from_sql(cls, sqlfile, db=None, release='1.0', aliases=None, from_file=None, fullfile=None):
         ''' Create a DataModel from a sql file '''
 
-        from cthreepo.core.mixins import DbMixin
+        from cthreepo.core.mixins import DbMixin, CatalogMixin, FitsMixin
         from cthreepo.core.objects import Property
         from cthreepo.core.lists import PropertyList
+
+        assert from_file in [None, 'catalog', 'fits'], 'from_file can only be catalog or fits'
+
+        # get mixin classes
+        if from_file:
+            filemixin = CatalogMixin if from_file == 'catalog' else FitsMixin
+            classes = (Property, DbMixin, filemixin,)
+        else:
+            classes = (Property, DbMixin,)
 
         db = 'sdss5b' if not db else db
         tables = read_schema_from_sql(sqlfile)
 
-        propclass = type(cls.__name__, (Property, DbMixin,), {})
+        propclass = type(cls.__name__, classes, {})
         properties = []
         for col in tables['columns']:
             prop = propclass(col, db_name=db, db_schema=tables['schema'], db_table=tables['table'])
             properties.append(prop)
         cls.properties = PropertyList(properties)
-        return cls
+        return cls(release, aliases=aliases, fullfile=fullfile)
 
     def dump_to_sql(self):
         ''' Dump DataModel to a sql file '''
