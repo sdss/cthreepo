@@ -25,6 +25,8 @@ Reference
 
    api
 
+   datamodels/index
+
 
 Indices and tables
 ==================

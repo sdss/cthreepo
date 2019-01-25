@@ -13,6 +13,8 @@
 # serve to show the default.
 
 import sphinx_bootstrap_theme
+import sys
+import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -20,6 +22,7 @@ import sphinx_bootstrap_theme
 
 from cthreepo import __version__
 from pkg_resources import parse_version
+sys.path.insert(0, os.path.abspath('../../python/cthreepo/datamodels/'))
 
 
 # -- General configuration ------------------------------------------------
@@ -33,7 +36,7 @@ from pkg_resources import parse_version
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary',
               'sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.mathjax',
-              'sphinx.ext.intersphinx']
+              'sphinx.ext.intersphinx', 'docudatamodel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -105,9 +108,9 @@ pygments_style = 'sphinx'
 todo_include_todos = False
 
 # Intersphinx mappings
-intersphinx_mapping = {'python': ('https://docs.python.org/3.6', None),
-                       'astropy': ('http://docs.astropy.org/en/latest', None),
-                       'numpy': ('http://docs.scipy.org/doc/numpy/', None)}
+# intersphinx_mapping = {'python': ('https://docs.python.org/3.6', None),
+#                        'astropy': ('http://docs.astropy.org/en/latest', None),
+#                        'numpy': ('http://docs.scipy.org/doc/numpy/', None)}
 
 autodoc_mock_imports = ['_tkinter']
 autodoc_member_order = 'groupwise'
