@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Sunday, 13th January 2019 8:52:58 pm
+# Last Modified: Friday, 25th January 2019 3:17:47 pm
 # Modified By: Brian Cherinka
 
 
@@ -28,6 +28,7 @@ class Fits(object):
         self._info = None
         self._determine_inputs(input, **kwargs)
         self._parse_filename(filename)
+        self._changes = None
 
         # open the file
         self._read_file()
@@ -114,21 +115,9 @@ class Fits(object):
             path = os.path.join(os.environ.get("SAS_BASE_DIR"), cls.example)
             return cls(path)
 
-    def compute_changelog(self, **kwargs):
-        ''' compute a changelog with another FITS file '''
-        
-        fits = self.__class__(**kwargs)
-
-        # compute the change log
-        split = kwargs.pop('split', None)
-        versions = kwargs.pop('versions', ['v2', 'v1'])
-        full = kwargs.pop('full', None)
-        diffreport = compute_changelog(self.hdulist, fits.hdulist, full=full, versions=versions, split=split)
-    
-        return diffreport
-
     @property
     def changelog(self):
-        the_list = []
-        return ChangeLog(the_list)
+        if not self._changes:
+            self._changes = compute_changelog(self, change='fits')
+        return self._changes
 

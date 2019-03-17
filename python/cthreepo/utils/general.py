@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Sunday, 13th January 2019 8:25:04 pm
+# Last Modified: Friday, 25th January 2019 6:53:32 pm
 # Modified By: Brian Cherinka
 
 
@@ -31,58 +31,58 @@ def _check_fits(data):
     return data
 
 
-def compute_changelog(file1, file2, full=False, versions=['v2', 'v1'], split=None):
-    ''' Compute the changelog between two FITS files '''
+# def compute_changelog(file1, file2, full=False, versions=['v2', 'v1'], split=None):
+#     ''' Compute the changelog between two FITS files '''
 
-    # start the diff report
-    diffreport = 'Version: {0} to {1}\n'.format(*versions)
-    #diffreport += '-' * (len(diffreport) - 1) + '\n'
+#     # start the diff report
+#     diffreport = 'Version: {0} to {1}\n'.format(*versions)
+#     #diffreport += '-' * (len(diffreport) - 1) + '\n'
 
-    hdulist = _check_fits(file1)
-    hdulist2 = _check_fits(file2)
+#     hdulist = _check_fits(file1)
+#     hdulist2 = _check_fits(file2)
 
-    # HDU diffs
-    n_hdus = len(hdulist)
-    n_hdu2s = len(hdulist2)
-    delta_nhdu = abs(n_hdus - n_hdu2s)
+#     # HDU diffs
+#     n_hdus = len(hdulist)
+#     n_hdu2s = len(hdulist2)
+#     delta_nhdu = abs(n_hdus - n_hdu2s)
 
-    n_hdu_diffs = (n_hdus, n_hdu2s)
-    hdu_names = [n.name for n in hdulist]
-    hdu2_names = [n.name for n in hdulist2]
+#     n_hdu_diffs = (n_hdus, n_hdu2s)
+#     hdu_names = [n.name for n in hdulist]
+#     hdu2_names = [n.name for n in hdulist2]
 
-    added = list(set(hdu_names) - set(hdu2_names))
-    removed = list(set(hdu2_names) - set(hdu_names))
+#     added = list(set(hdu_names) - set(hdu2_names))
+#     removed = list(set(hdu2_names) - set(hdu_names))
 
-    diffreport += 'Changes in HDU number: {0}\n'.format(delta_nhdu)
-    if delta_nhdu > 0:
-        diffreport += 'Added HDUs: {0}\n'.format(', '.join(added))
-        diffreport += 'Removed HDUs: {0}\n\n'.format(', '.join(removed))
+#     diffreport += 'Changes in HDU number: {0}\n'.format(delta_nhdu)
+#     if delta_nhdu > 0:
+#         diffreport += 'Added HDUs: {0}\n'.format(', '.join(added))
+#         diffreport += 'Removed HDUs: {0}\n\n'.format(', '.join(removed))
 
-    # primary header diffs
-    hd = fits.HDUDiff(hdulist['PRIMARY'], hdulist2['PRIMARY'],
-                      ignore_comments=['*'], rtol=10.0)
-    diff_keycount = hd.diff_headers.diff_keyword_count
-    added_kwargs = removed_kwargs = []
-    diffreport += 'Primary Header Differences:\n'
-    if diff_keycount:
-        added_kwargs = hd.diff_headers.diff_keywords[0]
-        removed_kwargs = hd.diff_headers.diff_keywords[1]
-        diffreport += 'Added Keywords: {0}\n'.format(', '.join(added_kwargs))
-        diffreport += 'Removed Keywords: {0}\n'.format(', '.join(removed_kwargs))
+#     # primary header diffs
+#     hd = fits.HDUDiff(hdulist['PRIMARY'], hdulist2['PRIMARY'],
+#                       ignore_comments=['*'], rtol=10.0)
+#     diff_keycount = hd.diff_headers.diff_keyword_count
+#     added_kwargs = removed_kwargs = []
+#     diffreport += 'Primary Header Differences:\n'
+#     if diff_keycount:
+#         added_kwargs = hd.diff_headers.diff_keywords[0]
+#         removed_kwargs = hd.diff_headers.diff_keywords[1]
+#         diffreport += 'Added Keywords: {0}\n'.format(', '.join(added_kwargs))
+#         diffreport += 'Removed Keywords: {0}\n'.format(', '.join(removed_kwargs))
 
-    # use Astropy FITSDiff to compute a complete diff
-    if full:
-        fd = fits.FITSDiff(hdulist, hdulist2)
-        fullreport = fd.report()
+#     # use Astropy FITSDiff to compute a complete diff
+#     if full:
+#         fd = fits.FITSDiff(hdulist, hdulist2)
+#         fullreport = fd.report()
 
-        diffreport += '\nFull Report:\n'
-        diffreport += fullreport
+#         diffreport += '\nFull Report:\n'
+#         diffreport += fullreport
 
-    # split the report
-    if split:
-        diffreport = diffreport.split('\n')
+#     # split the report
+#     if split:
+#         diffreport = diffreport.split('\n')
 
-    return diffreport
+#     return diffreport
 
 
 class ChangeLog(FuzzyList):
@@ -99,9 +99,11 @@ class ChangeLog(FuzzyList):
 class FileDiff(abc.ABC, object):
     ''' Class that holds the difference between two files '''
 
-    def __init__(self, file1, file2, versions=['v2', 'v1'], diff_type=None):
+    def __init__(self, file1, file2, versions=None, diff_type=None):
         self.diff_type = diff_type
-        self.versions = versions
+        self.versions = versions or ['v2', 'v1']
+        self.example1 = file1
+        self.example2 = file2
 
     def __repr__(self):
         return f"<FileDiff (versions='{','.join(self.versions)}', diff_type='{self.diff_type}')>"
@@ -184,3 +186,79 @@ class FitsDiff(FileDiff):
 
         return diffreport
 
+
+def _replace_version(name, version):
+    ''' Check if a version is a string, or tuple of versions '''
+
+    # check version format
+    islist = isinstance(version, (list, tuple))
+    allstrings = all([isinstance(v, six.string_types) for v in sum(version, ())])
+    assert islist and allstrings, 'Version must be in the proper format'
+
+    # do string replacement
+    for ver in version:
+        oldv, newv = ver
+        name = name.replace(oldv, newv)
+
+    return name
+
+
+def _format_versions(versions):
+    ''' orient the versions into the proper format '''
+
+    if isinstance(versions, dict):
+        versions = versions.values()
+    versions = list(versions)
+    # wrap string version in a tuple
+    versions = [(v,) if isinstance(v, six.string_types) else v for v in versions]
+    # create list of tuples of (v1, v2)
+    versions = list(zip(versions[:-1], versions[1:]))
+    # reformat the versions into tuples of by version column
+    versions = [tuple(zip(*v)) for v in versions]
+    return versions
+
+
+def compute_changelog(obj, change='fits'):
+    ''' compute a changelog for all available versions of the FITS '''
+
+    # check if object has any versions set
+    if not hasattr(obj, 'versions'):
+        print('No versions found.  Cannot compute changelog')
+        return None
+
+    # check the type of file
+    if change == 'fits':
+        diffobj = FitsDiff
+
+    name = obj.fullpath
+    fds = []
+
+    # reverse the releases
+    rev = {v: k for k, v in obj.versions.items()}
+    # reformat the versions
+    versions = _format_versions(obj.versions.values())
+
+    for vers in versions:
+        rel1, rel2 = [rev[v] for v in list(zip(*vers))]
+        new_name = _replace_version(name, vers)
+        try:
+            fd = diffobj(name, new_name, versions=[rel1, rel2])
+        except FileNotFoundError as e:
+            print(f'No file found for {new_name}')
+        else:
+            name = new_name
+            fds.append(fd)
+
+    # for rel in releases[:-1]:
+    #     idx = releases.index(rel)
+    #     v1 = obj.versions[rel]
+    #     v2 = obj.versions[releases[idx + 1]]
+
+
+    #     name1 = name
+    #     name2 = (name1.replace(v1, v2))
+    #     fd = diffobj(name1, name2, versions=[v1, v2])
+    #     name = name2
+    #     fds.append(fd)
+
+    return ChangeLog(fds)

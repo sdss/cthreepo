@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 9:03:33 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Sunday, 13th January 2019 8:28:28 pm
+# Last Modified: Wednesday, 6th February 2019 12:22:57 pm
 # Modified By: Brian Cherinka
 
 
@@ -15,6 +15,7 @@ from __future__ import print_function, division, absolute_import
 
 from cthreepo.core.fits import Fits
 
+# versions - a dictionary of releases with key:value pairs of release_name: version.
 versions = {'DR15': ('v2_4_3', '2.2.1'),
             'MPL-7': ('v2_4_3', '2.2.1'),
             'MPL-6': ('v2_3_1', '2.1.3'),
@@ -62,5 +63,18 @@ class Maps(Fits):
     name = "MAPS"
     example = ('mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-GAU-MILESHC/8485/1901'
                '/manga-8485-1901-MAPS-HYB10-GAU-MILESHC.fits.gz')
+    versions = {k: v for k, v in versions.items() if k != 'MPL-4'}
+    public = False
+
+
+class ModelCube(Fits):
+    """ A MaNGA ModelCube object
+
+    This is a DAP MODELCUBE object
+
+    """
+    name = "MODELCUBE"
+    example = ('mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-GAU-MILESHC/8485/1901'
+               '/manga-8485-1901-LOGCUBE-HYB10-GAU-MILESHC.fits.gz')
     versions = {k: v for k, v in versions.items() if k != 'MPL-4'}
     public = False
