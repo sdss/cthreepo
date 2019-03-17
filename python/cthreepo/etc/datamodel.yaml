@@ -1,0 +1,54 @@
+
+name: 'datamodel'
+description: 'list of'
+schema:
+  - name: 'Name'
+    kind: 'string'
+    required: True
+    group: 'Default'
+    key: 'Name'
+  - name: 'Description'
+    kind: 'string'
+    required: True
+    group: 'Default'
+    key: 'description'
+  - name: 'Datatype'
+    kind: 'string'
+    required: True
+    group: 'Default'
+    key: 'datatype'
+  - name: 'Example'
+    kind: 'string'
+    required: True
+    group: 'Default'
+    key: 'example'
+  - name: 'Versions'
+    kind: 'list'
+    required: True
+    group: 'Default'
+    key: 'versions'
+  - name: 'SDSS Access Name'
+    kind: 'string'
+    required: False
+    group: 'Default'
+    key: 'sdss_access'
+  - name: 'Public'
+    kind: 'boolean'
+    required: False
+    group: 'Default'
+    key: 'public'
+  - name: 'Equals'
+    kind: 'string'
+    required: False
+    group: 'Default'
+    key: 'Equals'
+  - name: 'Bintypes'
+    kind: 'list'
+    required: False
+    group: 'Default'
+    key: 'bintypes'
+  - name: 'Templates'
+    kind: 'list'
+    required: False
+    group: 'Default'
+    key: 'templates'          

@@ -1,0 +1,36 @@
+schema:
+  name: Template
+  key: template
+  description: 'Stellar Template library used in Fitting'
+  properties:
+    - name: Name
+      required: True
+      key: name
+      kind: 'string'
+    - name: Description
+      required: True
+      key: description
+      kind: 'string'
+    - name: 'Niter'
+      key: 'n'
+      kind: 'integer'
+
+templates:
+  M11-STELIB-ZSOL:
+    name: 'M11-STELIB-ZSOL'
+    description: 'M11 stellar template, solar metallicity.'
+    n: 0
+  MIUSCAT-THIN:
+    name: 'MIUSCAT-THIN'
+    description: 'MIUSCAT stellar template.'
+    n: 1 
+  MILES-THIN:
+    name: 'MILES-THIN'
+    description: 'MILES stellar template.'
+    n: 2       
+  GAU-MILESHC:
+    name: 'GAU-MILESHC'
+    description: 'Set of stellar templates derived from the MILES library.'
+  MILESHC-MILESHC:
+    name: 'MILESHC-MILESHC'
+    description: 'Set of templates derived from the MILES library, used for both the stellar kinematics and emission lines.'
