@@ -1,0 +1,13 @@
+name: manga datamodel
+description: list of manga datamodel attributes
+schema:
+  bintypes:
+    name: Bintypes
+    kind: list
+    required: False
+    group: Default
+  templates:
+    name: Templates
+    kind: list
+    required: False
+    group: Default

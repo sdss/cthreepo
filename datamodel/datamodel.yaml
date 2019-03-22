@@ -1,0 +1,45 @@
+
+name: sdss datamodel
+description: list of datamodel attributes
+# this schema describes the allowable parameters when defining data products
+schema: &dm
+  name:
+    name: Name
+    kind: string
+    required: True
+    group: Default
+  description:
+    name: Description
+    kind: string
+    required: True
+    group: Default
+  datatype:  
+    name: Datatype
+    kind: string
+    required: True
+    group: Default
+  example:  
+    name: Example
+    kind: string
+    required: True
+    group: Default
+  versions: 
+    name: Versions
+    kind: list
+    required: True
+    group: Default
+  sdss_access:
+    name: SDSS Access Name
+    kind: string
+    required: False
+    group: Default
+  public:
+    name: Public
+    kind: boolean
+    required: False
+    group: Default
+  equals:
+    name: Equals
+    kind: string
+    required: False
+    group: Default

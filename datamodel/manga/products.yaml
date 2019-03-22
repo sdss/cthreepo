@@ -1,0 +1,60 @@
+# manga logcube
+logcube:
+  name: LOGCUBE
+  description: |
+    This is 3d spectral datacube, with two spatial dimensions and one spectral dimension.
+    
+    The MaNGA DRP provides regularly-gridded cubes (with both logarithmic and linear wavelength 
+    solutions) that combine information from all exposures of a given galaxy.  The cubes are 
+    three-dimensional arrays in which the first and second dimensions are spatial (with regular 0.5 
+    arcsec square spaxels) and the third dimension represents wavelength.
+  datatype: fits
+  sdss_access: mangacube
+  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGCUBE.fits.gz
+  versions: [MPL1, MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+
+# manga logrss
+logrss:
+  name: LOGRSS
+  description: this is a manga logrss file
+  datatype: fits
+  sdss_access: mangarss
+  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
+  versions: [MPL1, MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+
+# manga image
+image: 
+  name: image
+  description: this is a manga optical image
+  datatype: image
+  sdss_access: mangaimage
+  versions: [MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+
+# manga map
+map:
+  name: MAPS
+  description: this is a manga dap map file
+  datatype: fits
+  versions:
+    MPL4:
+      sdss_access: mangamap
+      bintypes: [NONE, RADIAL, STON]
+      templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
+    MPL5:
+      example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
+      sdss_access: mangadap5
+      bintypes: [SPX, VOR10, ALL, NRE]
+      templates: [GAU-MILESHC]
+    MPL6:
+      bintypes: 
+        equals: MPL5 + HYB10
+    MPL7:
+      equals: MPL6
+      bintypes: [HYB10, VOR10]
+    DR15:
+      equals: MPL7
+    MPL8:
+      example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-HYB10-GAU-MILESHC.fits.gz
+      templates: [MILESHC-MILESHC]
+      bintypes: 
+        equals: MPL7 + SPX
