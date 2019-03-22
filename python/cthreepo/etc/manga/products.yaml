@@ -32,8 +32,8 @@ map:
   versions:
     MPL4:
       sdss_access: 'mangamap'
-      bintypes:
-      templates:
+      bintypes: [NONE, Radial, STON]
+      templates: [M11-STELIB-ZSOL, 'MIUSCAT-THIN', 'MILES-THIN']
     MPL5:
       example: 'mangawork/manga/spectro/analysis/v2_4_3/2.2.1/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz'
       sdss_access: 'mangadap5'

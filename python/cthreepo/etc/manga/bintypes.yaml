@@ -15,43 +15,36 @@ schema:
       key: binned
       default: True
       kind: boolean
+      add_to_repr: True
     - name: 'Niter'
       key: 'n'
       kind: integer
 
-bintypes:
-  NONE:
-    name: 'NONE'
+objects:
+  - name: 'NONE'
     description: 'No binning.'
     binned: False
     n: 3
-  RADIAL:
-    name: 'RADIAL'
+  - name: 'RADIAL'
     description: 'Bin spectra from 0-1 Re and from 1-2 Re in two bins.'
     binned: True
     n: 7
-  STON:
-    name: 'STON'
+  - name: 'STON'
     description: 'Bin to S/N=30; only include S/N>5 spectra; fit V, sigma, h3, h4 for stellar kinematics.'
     binned: True
     n: 1
-  SPX:
-    name: SPX
+  - name: SPX
     description: 'Unbinned spaxels'
     binned: False
-  ALL:
-    name: ALL
+  - name: ALL
     description: 'Sum of all spectra in each datacube.'
     binned: True
-  NRE:
-    name: NRE
+  - name: NRE
     description: 'Two radial bins, binning all spectra from 0-1and 1-2 (elliptical Petrosian) effective radii.'
     binned: True
-  VOR10:
-    name: VOR10
+  - name: VOR10
     description: 'Spectra binned to S/N~10 using the Voronoi binning algorithm (Cappellari & Copin 2003).'
     binned: True
-  HYB10:
-    name: HYB10
+  - name: HYB10
     description: 'Binning and stellar continuum fitting as VOR10, but emission lines are fitted per spaxel.'
     binned: True
