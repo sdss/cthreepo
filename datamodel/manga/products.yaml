@@ -22,9 +22,6 @@ logrss:
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
   versions: *ver
 
-testcube:
-  name: TEST
-  stuff: 123
 
 # manga image
 image: 

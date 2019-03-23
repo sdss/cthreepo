@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Saturday, 23rd March 2019 4:05:20 pm
+# Last Modified: Saturday, 23rd March 2019 5:22:22 pm
 # Modified By: Brian Cherinka
 
 
@@ -228,6 +228,10 @@ def generate_models(data, make_fuzzy=True):
 
 def read_yaml(ymlfile):
     ''' opens and reads a yaml datamodel file '''
+
+    if isinstance(ymlfile, str):
+        ymlfile = pathlib.Path(ymlfile)
+
     with open(ymlfile, 'r') as f:
         data = yaml.load(f)
 
@@ -359,4 +363,23 @@ def create_product_schema(data):
     objSchema = type('ProductSchema', (BaseSchema,), attrs)
     return objSchema
 
+
+def generate_products(ymlfile, name=None, make_fuzzy=True):
+    ''' generate a list of vdatamodel types '''
+
+    # generate the full datamodel schema
+    dmschema = find_datamodels(ymlfile)
+    schema = create_product_schema(dmschema)
+    data = read_yaml(ymlfile)
+    
+    # get the products data 
+    many = False if name else True
+    objects = data.get(name, None) if name else data 
+
+    # serialize the object     
+    models = schema().load(objects, many=many)
+
+    if make_fuzzy and isinstance(models, list):
+        models = FuzzyList(models)
+    return models
 
