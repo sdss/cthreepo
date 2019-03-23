@@ -1,7 +1,7 @@
 
-name: sdss datamodel
+name: sdss
 description: list of datamodel attributes
-# this schema describes the allowable parameters when defining data products
+# this schema describes the allowable parameters when defining objects products.yaml
 schema: &dm
   name:
     name: Name
@@ -25,7 +25,7 @@ schema: &dm
     group: Default
   versions: 
     name: Versions
-    kind: list
+    kind: list(string)
     required: True
     group: Default
   sdss_access:

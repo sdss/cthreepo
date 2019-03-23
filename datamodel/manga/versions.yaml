@@ -1,6 +1,6 @@
 schema:
-  name: Versions
-  key: versions
+  name: Version
+  key: version
   description: MaNGA release versions
   attributes:
     release:

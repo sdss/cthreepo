@@ -1,4 +1,4 @@
-name: manga datamodel
+name: manga
 description: list of manga datamodel attributes
 schema:
   bintypes:

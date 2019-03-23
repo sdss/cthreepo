@@ -7,26 +7,29 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 22nd March 2019 3:05:03 pm
+# Last Modified: Saturday, 23rd March 2019 4:05:20 pm
 # Modified By: Brian Cherinka
 
 
 from __future__ import print_function, division, absolute_import
 
+import os
+import re
 import yaml
 import pathlib
 from marshmallow import Schema, fields, post_load
 from cthreepo.core.structs import FuzzyList
+from cthreepo.misc import log
 
-p = pathlib.Path('../etc/')
+p = pathlib.Path('../../../datamodel/')
 files = p.glob('**/*.yaml')
 
 #
 # examples
 #
 
-with open('../etc/manga/bintypes.yaml', 'r') as f:
-    e = yaml.load(f)
+# with open('../../../datamodel/manga/bintypes.yaml', 'r') as f:
+#     e = yaml.load(f)
 
 
 class Bintype(object):
@@ -55,8 +58,8 @@ class BintypeSchema(Schema):
 # Bintype = type(e['schema']['name'], (object,), e['schema'])
 
 
-with open('../etc/manga/templates.yaml', 'r') as f:
-    e = yaml.load(f)
+# with open('../../../datamodel/manga/templates.yaml', 'r') as f:
+#     e = yaml.load(f)
 
 
 class Template(object):
@@ -106,7 +109,8 @@ def create_class(data):
         return reprstr
 
     # get the attributes to add to the repr
-    added_fields = [a for a, vals in data['attributes'].items() if vals.get('add_to_repr', None)]
+    if 'attributes' in data:
+        added_fields = [a for a, vals in data['attributes'].items() if vals.get('add_to_repr', None)]
 
     # define a new init
     def new_init(self, **kwargs):
@@ -128,17 +132,61 @@ def create_class(data):
     return obj
 
 
+def parse_kind(value):
+    ''' parse the kind value '''
+    subkind = re.search(r'\((.+?)\)', value)
+    if subkind:
+        kind = value.split('(', 1)[0]
+        subkind = subkind.group(1)
+    else:
+        kind = value
+        # set default list or tuple subfield to string
+        if kind.lower() == 'list':
+            subkind = 'string'
+        elif kind.lower() == 'tuple':
+            subkind = 'string'
+        
+    return kind, subkind
+
+
+def get_field(value):
+    ''' Get a Marshmallow Fields type '''
+    if hasattr(fields, value):
+        field = fields.__getattribute__(value)
+        return field
+    else:
+        raise ValueError(f'Marshmallow Fields does not have {value}')
+
+
 def create_field(data):
     ''' creates a marshmallow.fields '''
+
+    # parse the kind of input
     kind = data['kind'].title()
+    kind, subkind = parse_kind(kind)
+    # get the field
+    field = get_field(kind)
+    
+    # create params
     params = {}
-    if hasattr(fields, kind):
-        field = fields.__getattribute__(kind)
-        params['required'] = data.get('required', False)
-        if 'default' in data:
-            params['missing'] = data.get('default', None)
-            params['default'] = data.get('default', None)
-        return field(**params)
+    params['required'] = data.get('required', False)
+    if 'default' in data:
+        params['missing'] = data.get('default', None)
+        params['default'] = data.get('default', None)
+
+    # create any args for sub-fields
+    args = []
+    if subkind:
+        skinds = subkind.split(',')
+        subfields = [get_field(i.title()) for i in skinds]
+        # differentiate args for lists and tuples 
+        if kind == 'List':
+            assert len(subfields) == 1, 'List can only accept one subfield type.'
+            args.extend(subfields)
+        elif kind == 'Tuple':
+            args.append(subfields)
+
+    return field(*args, **params)
 
 
 class BaseSchema(Schema):
@@ -183,15 +231,24 @@ def read_yaml(ymlfile):
     with open(ymlfile, 'r') as f:
         data = yaml.load(f)
 
-    if 'datamodel' not in ymlfile.parts and 'products' not in ymlfile.parts:
+    if ymlfile.stem not in ['datamodel', 'products']:
         assert 'schema' in data, 'datamodel file must contain a schema section'
         assert 'objects' in data, 'datamodel file must contain an objects section'
+
+    # validate the products
+    if ymlfile.stem == 'products':
+        dm = find_datamodels(ymlfile)
+        for prodname, content in data.items():
+            prodkeys = set(content.keys())
+            dmkeys = set(dm['schema'].keys())
+            notallowed = ', '.join(prodkeys - dmkeys)
+            assert prodkeys.issubset(dmkeys), f'{prodname} contains unallowed keys ({notallowed}) in datamodel schema' 
 
     return data
 
 
 def merge_datamodels(user, default):
-    """Merges datamodel files 
+    """Merges datamodel files
     alternative - try hiyapyco package or yamlload for merging purposes
     """
 
@@ -207,3 +264,99 @@ def merge_datamodels(user, default):
                 user.append(item)
 
     return user
+
+
+def find_datamodels(path):
+    ''' find all datamodel.yaml files up to a given path '''
+
+    path = path.resolve()
+    path = path.parent if path.is_file() else path
+
+    datamodel_dir = os.environ['CTHREEPO_DIR'] / pathlib.Path('datamodel')
+    datamodel = {}
+    for dirs, subdirs, files in os.walk(datamodel_dir):
+        if 'datamodel.yaml' in files and dirs in path.as_posix():
+            ymlfile = (pathlib.Path(dirs) / 'datamodel.yaml')
+            ymldata = read_yaml(ymlfile)
+            datamodel = merge_datamodels(ymldata, datamodel)
+        if dirs == path.as_posix():
+            break
+    return datamodel
+    
+####
+## testing here
+
+
+class Product(object):
+    def __init__(self, name=None, description=None, datatype=None, sdss_access=None,
+                 example=None, versions=None):
+        self.name = name
+        self.description = description
+        self.datatype = datatype
+        self.sdss_access = sdss_access
+        self.example = example
+        self.versions = versions
+
+    def __repr__(self):
+        return f'<Product({self.name})>'
+
+
+class ProductSchema(Schema):
+    name = fields.Str(required=True)
+    description = fields.Str(required=True)
+    datatype = fields.Str(required=True)
+    sdss_access = fields.Str(required=True)
+    example = fields.Str(required=True)
+    versions = fields.List(fields.Str, required=True)
+
+    @post_load
+    def make_object(self, data):
+        return Product(**data)
+
+
+def create_product(data):
+    ''' create a product class '''
+    # define custom repr
+    def new_rep(self):
+        reprstr = f'<Product({self._repr_fields})>'
+        return reprstr
+
+    # get the attributes to add to the repr
+    added_fields = [a for a, vals in data['schema'].items() if vals.get('add_to_repr', None)]
+
+    # define a new init
+    def new_init(self, **kwargs):
+        repr_fields = ''
+        # loop for attributes
+        for key, value in list(kwargs.items()):
+            self.__setattr__(key, value)
+            # create a repr field string
+            if key in added_fields:
+                repr_fields += f', {key}={value}'
+        # create a string of the repr fields
+        name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
+        self._repr_fields = f'{name}' + repr_fields
+
+    # create the new class and add the new methods
+    obj = type("Product", (object,), {})
+    obj.__init__ = new_init
+    obj.__repr__ = new_rep
+    return obj
+
+
+def create_product_schema(data):
+    ''' create a product schema class '''
+    if 'schema' in data:
+        attrs = {}
+        for attr, values in data['schema'].items():
+            attrs[attr] = create_field(values)
+    else:
+        attrs = {}
+        
+    class_obj = create_product(data)
+    attrs['_class'] = class_obj
+    
+    objSchema = type('ProductSchema', (BaseSchema,), attrs)
+    return objSchema
+
+

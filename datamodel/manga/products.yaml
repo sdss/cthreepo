@@ -11,7 +11,7 @@ logcube:
   datatype: fits
   sdss_access: mangacube
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGCUBE.fits.gz
-  versions: [MPL1, MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+  versions: &ver [MPL1, MPL2, MPL3, MPL4, DR13, MPL5, DR14, MPL6, MPL7, DR15, MPL8]
 
 # manga logrss
 logrss:
@@ -20,7 +20,11 @@ logrss:
   datatype: fits
   sdss_access: mangarss
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
-  versions: [MPL1, MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+  versions: *ver
+
+testcube:
+  name: TEST
+  stuff: 123
 
 # manga image
 image: 
@@ -28,10 +32,11 @@ image:
   description: this is a manga optical image
   datatype: image
   sdss_access: mangaimage
+  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/images/1901.png
   versions: [MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
 
-# manga map
-map:
+# manga maps
+maps:
   name: MAPS
   description: this is a manga dap map file
   datatype: fits
@@ -58,3 +63,4 @@ map:
       templates: [MILESHC-MILESHC]
       bintypes: 
         equals: MPL7 + SPX
+
