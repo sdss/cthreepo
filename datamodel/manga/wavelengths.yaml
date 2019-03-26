@@ -1,0 +1,34 @@
+schema:
+  name: Wavelength
+  key: wavelength
+  description: wavelength sampling
+  attributes:
+    name:
+      name: Name
+      required: True
+      kind: string
+    description:
+      name: Description
+      required: True
+      kind: string
+    nwave:
+      name: NumWave
+      kind: integer
+    wmin:
+      name: Min. Wavelength
+      kind: float
+    wmax:
+      name: Max. Wavelength
+      kind: float
+
+objects:
+  - name: LOG
+    description: logarithmic wavelength sampling from log10(lambda/Angstroms)=3.5589 to 4.0151
+    nwave: 4563
+    wmin: 3.5589
+    wmax: 4.0151
+  - name: LIN
+    description: linear wavelength sampling from 3622 to 10353 Angstroms
+    nwave: 6732
+    wmin: 3622
+    wmax: 10353

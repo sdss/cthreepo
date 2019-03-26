@@ -1,5 +1,5 @@
 name: manga
-description: list of manga datamodel attributes
+description: list of manga specific datamodel attributes
 defaults: &defaults
   required: False
   group: Default
@@ -19,4 +19,8 @@ schema:
   default_template:
     name: Template
     kind: string
+    <<: *defaults
+  wavelengths:
+    name: Wavelengths
+    kind: list
     <<: *defaults

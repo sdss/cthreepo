@@ -37,27 +37,33 @@ maps:
   name: MAPS
   description: this is a manga dap map file
   datatype: fits
-  versions:
+  versions: [MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+  changelog:
     MPL4:
       sdss_access: mangamap
       bintypes: [NONE, RADIAL, STON]
       templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
-    MPL5:
+      default_bintype: NONE
+      default_template: MIUSCAT-THIN
+    MPL5: &mpl5
       example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
       sdss_access: mangadap5
       bintypes: [SPX, VOR10, ALL, NRE]
       templates: [GAU-MILESHC]
+      default_bintype: SPX
+      default_template: GAU-MILESHC
     MPL6:
-      bintypes: 
-        equals: MPL5 + HYB10
-    MPL7:
-      equals: MPL6
+      <<: *mpl5
+      bintypes: MPL5 += HYB10
+    MPL7: &dr15
+      <<: *mpl5
       bintypes: [HYB10, VOR10]
-    DR15:
-      equals: MPL7
+      default_bintype: HYB10
+    DR15: 
+      <<: *dr15
     MPL8:
       example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-HYB10-GAU-MILESHC.fits.gz
       templates: [MILESHC-MILESHC]
-      bintypes: 
-        equals: MPL7 + SPX
-
+      bintypes: MPL7 += SPX 
+      default_bintype: HYB10
+      default_template: MILESHC-MILESHC

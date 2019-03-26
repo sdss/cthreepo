@@ -1,7 +1,7 @@
 
 name: sdss
 description: list of datamodel attributes
-# this schema describes the allowable parameters when defining objects products.yaml
+# this schema describes the allowable parameters when defining objects in products.yaml
 schema: &dm
   name:
     name: Name
@@ -38,8 +38,8 @@ schema: &dm
     kind: boolean
     required: False
     group: Default
-  equals:
-    name: Equals
-    kind: string
+  changelog:
+    name: Changelog
+    kind: dict
     required: False
     group: Default

@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Tuesday, 26th March 2019 3:58:11 pm
+# Last Modified: Tuesday, 26th March 2019 4:33:48 pm
 # Modified By: Brian Cherinka
 
 
@@ -271,7 +271,7 @@ def merge_datamodels(user, default):
 
 
 def find_datamodels(path):
-    ''' find all datamodel.yaml files up to a given path '''
+    ''' find all datamodel.yaml files up to a given path and merge them '''
 
     path = path.resolve()
     path = path.parent if path.is_file() else path
@@ -391,7 +391,6 @@ def parse_value(key, value, data, versions):
         return value
 
     value = value.replace(' ', '')
-    #versions = data['versions']
 
     # check if the value has a version in it
     version_patt = r'^(?:{0})'.format('|'.join(versions))
@@ -432,9 +431,9 @@ def parse_value(key, value, data, versions):
 
         # modify the original list of values
         if modifiers[idx - 1] == '+=':
-            orig_data = list(set(orig_data)|set(modeval))
+            orig_data = list(set(orig_data) | set(modeval))
         elif modifiers[idx - 1] == '-=':
-            orig_data = list(set(orig_data)-set(modeval))
+            orig_data = list(set(orig_data) - set(modeval))
 
     return orig_data
 
@@ -444,11 +443,13 @@ def modify_yaml(data):
 
     # loop over the objects
     for key, value in data.items():
+        changelog = value.get('changelog', None)
         versions = value.get('versions', None)
-        if versions and isinstance(versions, dict):
-            for ver, verdata in versions.items():
+        assert versions is not None, f'Must have a versions key set for object {key}'
+        if changelog and isinstance(changelog, dict):
+            for ver, verdata in changelog.items():
                 for k, v in verdata.items():
-                    new = parse_value(k, v, versions, versions.keys())
-                    data[key]['versions'][ver][k] = new
+                    new = parse_value(k, v, changelog, versions)
+                    data[key]['changelog'][ver][k] = new
     return data
 
