@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Saturday, 23rd March 2019 5:22:22 pm
+# Last Modified: Tuesday, 26th March 2019 3:58:11 pm
 # Modified By: Brian Cherinka
 
 
@@ -382,4 +382,73 @@ def generate_products(ymlfile, name=None, make_fuzzy=True):
     if make_fuzzy and isinstance(models, list):
         models = FuzzyList(models)
     return models
+
+
+def parse_value(key, value, data, versions):
+    ''' parse a value for versions '''
+
+    if not isinstance(value, str):
+        return value
+
+    value = value.replace(' ', '')
+    #versions = data['versions']
+
+    # check if the value has a version in it
+    version_patt = r'^(?:{0})'.format('|'.join(versions))
+    has_vers = re.search(version_patt, value)
+    if not has_vers:
+        assert '+=' not in value, f'{value} cannot have a += operator'
+        assert '-=' not in value, f'{value} cannot have a -= operator'
+        return value
+
+    # check format of string value
+    word_patt = r'([+-]=\[?\w+-?,?\w+\]?)+'
+    pattern = r'{0}{1}'.format(version_patt, word_patt)
+    match = re.search(pattern, value)
+    if not match:
+        raise ValueError('Syntax does not match the correct syntax: [ver] += XXX -= XXX')
+    
+    # split the value on +=, -=
+    content = re.split(r'(\+=|\-=)', value)
+    version, modifiers = content[0], content[1:]
+    assert version in versions, f'{versions} not in allowed list of versions'
+    
+    # get the data for this version
+    rel_data = data[version]
+    assert key in rel_data, f'{key} not found in this release data'
+    
+    # get the original value content for the key
+    orig_data = rel_data[key].copy()
+
+    # loop over the modifiers by 2
+    for mod in modifiers[1::2]:
+        idx = modifiers.index(mod)
+        islist = re.search(r'\[(.*?)\]', mod)
+        # convert the string into a list
+        if islist:
+            modeval = islist.group(1).split(',')
+        else:
+            modeval = [mod]
+
+        # modify the original list of values
+        if modifiers[idx - 1] == '+=':
+            orig_data = list(set(orig_data)|set(modeval))
+        elif modifiers[idx - 1] == '-=':
+            orig_data = list(set(orig_data)-set(modeval))
+
+    return orig_data
+
+
+def modify_yaml(data):
+    '''modify the yaml with version substitution'''
+
+    # loop over the objects
+    for key, value in data.items():
+        versions = value.get('versions', None)
+        if versions and isinstance(versions, dict):
+            for ver, verdata in versions.items():
+                for k, v in verdata.items():
+                    new = parse_value(k, v, versions, versions.keys())
+                    data[key]['versions'][ver][k] = new
+    return data
 
