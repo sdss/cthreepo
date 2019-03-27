@@ -1,6 +1,7 @@
 
 name: sdss
 description: list of datamodel attributes
+required_keys: [name, kind, required]
 # this schema describes the allowable parameters when defining objects in products.yaml
 schema: &dm
   name:
@@ -21,7 +22,7 @@ schema: &dm
   example:  
     name: Example
     kind: string
-    required: True
+    required: False
     group: Default
   versions: 
     name: Versions

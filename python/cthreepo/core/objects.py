@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Tuesday, 26th March 2019 4:33:48 pm
+# Last Modified: Wednesday, 27th March 2019 11:36:29 am
 # Modified By: Brian Cherinka
 
 
@@ -242,6 +242,7 @@ def read_yaml(ymlfile):
     # validate the products
     if ymlfile.stem == 'products':
         dm = find_datamodels(ymlfile)
+        data = expand_yaml(data)
         for prodname, content in data.items():
             prodkeys = set(content.keys())
             dmkeys = set(dm['schema'].keys())
@@ -270,6 +271,18 @@ def merge_datamodels(user, default):
     return user
 
 
+def validate_datamodel(data):
+    ''' Validate the base datamodel schema '''
+
+    assert 'required_keys' in data, 'datamodel must contain a list of valid keys'
+    assert 'schema' in data, 'datamodel must have a schema entry'
+    keys = data['required_keys']
+    for key, value in data['schema'].items():
+        itemkeys = value.keys()
+        assert set(keys).issubset(set(itemkeys)), (f'datamodel attribute {key} must '
+                                                   f'contain the following keys: {",".join(keys)}')
+
+  
 def find_datamodels(path):
     ''' find all datamodel.yaml files up to a given path and merge them '''
 
@@ -285,6 +298,8 @@ def find_datamodels(path):
             datamodel = merge_datamodels(ymldata, datamodel)
         if dirs == path.as_posix():
             break
+
+    validate_datamodel(datamodel)
     return datamodel
     
 ####
@@ -438,8 +453,8 @@ def parse_value(key, value, data, versions):
     return orig_data
 
 
-def modify_yaml(data):
-    '''modify the yaml with version substitution'''
+def expand_yaml(data):
+    '''expand the yaml with version substitution'''
 
     # loop over the objects
     for key, value in data.items():
