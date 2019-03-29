@@ -12,6 +12,16 @@ logcube:
   sdss_access: mangacube
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGCUBE.fits.gz
   versions: &ver [MPL1, MPL2, MPL3, MPL4, DR13, MPL5, DR14, MPL6, MPL7, DR15, MPL8]
+  # this is example of changelog utilizing the defaults dict
+  defaults:
+    wavelengths: [LOG, LIN]
+  changelog:
+    MPL1: &owave
+      wavelengths: [LOG]
+    MPL2:
+      <<: *owave
+    MPL3:
+      <<: *owave
 
 # manga logrss
 logrss:
@@ -21,11 +31,34 @@ logrss:
   sdss_access: mangarss
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
   versions: *ver
-
+  # this is an example of an explicit changelog
+  changelog:
+    MPL1: &logwave 
+      wavelengths: [LOG]
+    MPL2:
+      <<: *logwave
+    MPL3:
+      <<: *logwave 
+    MPL4: &wave
+      wavelengths: [LOG, LIN]
+    DR13: 
+      <<: *wave
+    MPL5: 
+      <<: *wave 
+    DR14: 
+      <<: *wave 
+    MPL6: 
+      <<: *wave 
+    MPL7: 
+      <<: *wave 
+    DR15: 
+      <<: *wave 
+    MPL8: 
+      <<: *wave 
 
 # manga image
 image: 
-  name: image
+  name: Image
   description: this is a manga optical image
   datatype: image
   sdss_access: mangaimage
@@ -38,7 +71,8 @@ maps:
   description: this is a manga dap map file
   datatype: fits
   versions: [MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
-  changelog:
+  # this is an example of a changelog where everything changes 
+  changelog: &dapchange
     MPL4:
       sdss_access: mangamap
       bintypes: [NONE, RADIAL, STON]
@@ -67,3 +101,13 @@ maps:
       bintypes: MPL7 += SPX 
       default_bintype: HYB10
       default_template: MILESHC-MILESHC
+
+# manga modelcube
+modelcube:
+  name: MODELCUBE
+  description: this is a manga dap modelcube file
+  datatype: fits
+  versions: [MPL5, MPL6, MPL7, DR15, MPL8]
+  changelog:
+    <<: *dapchange
+    MPL4: null

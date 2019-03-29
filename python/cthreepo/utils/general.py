@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 25th January 2019 6:53:32 pm
+# Last Modified: Friday, 29th March 2019 10:01:09 am
 # Modified By: Brian Cherinka
 
 
@@ -29,61 +29,6 @@ def _check_fits(data):
         assert isinstance(data, six.string_types), 'input must be string filename or a FITS HDUList '
         data = fits.open(data)
     return data
-
-
-# def compute_changelog(file1, file2, full=False, versions=['v2', 'v1'], split=None):
-#     ''' Compute the changelog between two FITS files '''
-
-#     # start the diff report
-#     diffreport = 'Version: {0} to {1}\n'.format(*versions)
-#     #diffreport += '-' * (len(diffreport) - 1) + '\n'
-
-#     hdulist = _check_fits(file1)
-#     hdulist2 = _check_fits(file2)
-
-#     # HDU diffs
-#     n_hdus = len(hdulist)
-#     n_hdu2s = len(hdulist2)
-#     delta_nhdu = abs(n_hdus - n_hdu2s)
-
-#     n_hdu_diffs = (n_hdus, n_hdu2s)
-#     hdu_names = [n.name for n in hdulist]
-#     hdu2_names = [n.name for n in hdulist2]
-
-#     added = list(set(hdu_names) - set(hdu2_names))
-#     removed = list(set(hdu2_names) - set(hdu_names))
-
-#     diffreport += 'Changes in HDU number: {0}\n'.format(delta_nhdu)
-#     if delta_nhdu > 0:
-#         diffreport += 'Added HDUs: {0}\n'.format(', '.join(added))
-#         diffreport += 'Removed HDUs: {0}\n\n'.format(', '.join(removed))
-
-#     # primary header diffs
-#     hd = fits.HDUDiff(hdulist['PRIMARY'], hdulist2['PRIMARY'],
-#                       ignore_comments=['*'], rtol=10.0)
-#     diff_keycount = hd.diff_headers.diff_keyword_count
-#     added_kwargs = removed_kwargs = []
-#     diffreport += 'Primary Header Differences:\n'
-#     if diff_keycount:
-#         added_kwargs = hd.diff_headers.diff_keywords[0]
-#         removed_kwargs = hd.diff_headers.diff_keywords[1]
-#         diffreport += 'Added Keywords: {0}\n'.format(', '.join(added_kwargs))
-#         diffreport += 'Removed Keywords: {0}\n'.format(', '.join(removed_kwargs))
-
-#     # use Astropy FITSDiff to compute a complete diff
-#     if full:
-#         fd = fits.FITSDiff(hdulist, hdulist2)
-#         fullreport = fd.report()
-
-#         diffreport += '\nFull Report:\n'
-#         diffreport += fullreport
-
-#     # split the report
-#     if split:
-#         diffreport = diffreport.split('\n')
-
-#     return diffreport
-
 
 class ChangeLog(FuzzyList):
     ''' Class that holds the change log for a FITS file type 

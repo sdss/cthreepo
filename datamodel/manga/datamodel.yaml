@@ -6,12 +6,14 @@ defaults: &defaults
 schema:
   bintypes:
     name: Bintypes
-    kind: list
+    kind: list(objects)
     <<: *defaults
+    schema: bintypes.yaml
   templates:
     name: Templates
-    kind: list
+    kind: list(objects)
     <<: *defaults
+    schema: templates.yaml
   default_bintype:
     name: Bintype
     kind: string
@@ -22,5 +24,11 @@ schema:
     <<: *defaults
   wavelengths:
     name: Wavelengths
-    kind: list
+    kind: list(objects)
     <<: *defaults
+    schema: wavelength.yaml
+  versions:
+    name: Versions
+    kind: list(objects)
+    <<: *defaults
+    schema: versions.yaml 

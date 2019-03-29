@@ -19,6 +19,7 @@ schema: &dm
     kind: string
     required: True
     group: Default
+    add_to_repr: True
   example:  
     name: Example
     kind: string
@@ -41,6 +42,11 @@ schema: &dm
     group: Default
   changelog:
     name: Changelog
+    kind: dict
+    required: False
+    group: Default
+  defaults:
+    name: Defaults
     kind: dict
     required: False
     group: Default

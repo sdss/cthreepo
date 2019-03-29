@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Wednesday, 27th March 2019 11:36:29 am
+# Last Modified: Friday, 29th March 2019 10:04:16 am
 # Modified By: Brian Cherinka
 
 
@@ -20,6 +20,7 @@ import pathlib
 from marshmallow import Schema, fields, post_load
 from cthreepo.core.structs import FuzzyList
 from cthreepo.misc import log
+import cthreepo.datamodel as dm
 
 p = pathlib.Path('../../../datamodel/')
 files = p.glob('**/*.yaml')
@@ -30,6 +31,19 @@ files = p.glob('**/*.yaml')
 
 # with open('../../../datamodel/manga/bintypes.yaml', 'r') as f:
 #     e = yaml.load(f)
+
+
+class ObjectField(fields.Field):
+    ''' custom object field '''
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return ''
+        return value.release if hasattr(value, 'release') else value.name if hasattr(value, 'name') else ''
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        name = self.default
+        data = globals().get(name, None)
+        return data[value] if data else value
 
 
 class Bintype(object):
@@ -108,6 +122,11 @@ def create_class(data):
         reprstr = f'<{data["name"]}({self._repr_fields})>'
         return reprstr
 
+    # define custom str
+    def new_str(self):
+        name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
+        return name
+
     # get the attributes to add to the repr
     if 'attributes' in data:
         added_fields = [a for a, vals in data['attributes'].items() if vals.get('add_to_repr', None)]
@@ -129,6 +148,7 @@ def create_class(data):
     obj = type(data['name'], (object,), {})
     obj.__init__ = new_init
     obj.__repr__ = new_rep
+    obj.__str__ = new_str
     return obj
 
 
@@ -149,16 +169,18 @@ def parse_kind(value):
     return kind, subkind
 
 
-def get_field(value):
+def get_field(value, key=None):
     ''' Get a Marshmallow Fields type '''
     if hasattr(fields, value):
         field = fields.__getattribute__(value)
         return field
+    elif value == 'Objects':
+        return ObjectField(key)
     else:
         raise ValueError(f'Marshmallow Fields does not have {value}')
 
 
-def create_field(data):
+def create_field(data, key=None, required=None):
     ''' creates a marshmallow.fields '''
 
     # parse the kind of input
@@ -169,7 +191,7 @@ def create_field(data):
     
     # create params
     params = {}
-    params['required'] = data.get('required', False)
+    params['required'] = data.get('required', False) if required is None else required
     if 'default' in data:
         params['missing'] = data.get('default', None)
         params['default'] = data.get('default', None)
@@ -178,8 +200,8 @@ def create_field(data):
     args = []
     if subkind:
         skinds = subkind.split(',')
-        subfields = [get_field(i.title()) for i in skinds]
-        # differentiate args for lists and tuples 
+        subfields = [get_field(i.title(), key=key) for i in skinds]
+        # differentiate args for lists and tuples
         if kind == 'List':
             assert len(subfields) == 1, 'List can only accept one subfield type.'
             args.extend(subfields)
@@ -206,7 +228,7 @@ def create_schema(data):
     if 'attributes' in data:
         attrs = {}
         for attr, values in data['attributes'].items():
-            attrs[attr] = create_field(values)
+            attrs[attr] = create_field(values, key=attr)
     else:
         attrs = {}
 
@@ -218,7 +240,7 @@ def create_schema(data):
 
     
 def generate_models(data, make_fuzzy=True):
-    ''' generate a list of vdatamodel types '''
+    ''' generate a list of datamodel types '''
     schema = create_schema(data['schema'])
     models = schema().load(data['objects'], many=True)
     if make_fuzzy:
@@ -282,7 +304,7 @@ def validate_datamodel(data):
         assert set(keys).issubset(set(itemkeys)), (f'datamodel attribute {key} must '
                                                    f'contain the following keys: {",".join(keys)}')
 
-  
+
 def find_datamodels(path):
     ''' find all datamodel.yaml files up to a given path and merge them '''
 
@@ -363,12 +385,13 @@ def create_product(data):
     return obj
 
 
-def create_product_schema(data):
+def create_product_schema(data, base=None, required=None):
     ''' create a product schema class '''
     if 'schema' in data:
         attrs = {}
         for attr, values in data['schema'].items():
-            attrs[attr] = create_field(values)
+            check_base(base, attr)
+            attrs[attr] = create_field(values, key=attr, required=required)
     else:
         attrs = {}
         
@@ -379,25 +402,45 @@ def create_product_schema(data):
     return objSchema
 
 
-def generate_products(ymlfile, name=None, make_fuzzy=True):
+def generate_products(ymlfile, name=None, make_fuzzy=True, base=None):
     ''' generate a list of vdatamodel types '''
 
     # generate the full datamodel schema
     dmschema = find_datamodels(ymlfile)
-    schema = create_product_schema(dmschema)
+    schema = create_product_schema(dmschema, base=base)
     data = read_yaml(ymlfile)
     
-    # get the products data 
+    # get the products data
     many = False if name else True
-    objects = data.get(name, None) if name else data 
+    objects = data.get(name, None) if name else data.values()
 
-    # serialize the object     
+    # serialize the object
     models = schema().load(objects, many=many)
 
     if make_fuzzy and isinstance(models, list):
         models = FuzzyList(models)
     return models
 
+
+def check_base(base, key):
+    ''' retrieve base module level and set an attribute into globals
+    TODO this needs replacing; and a better solution
+    '''
+    import importlib
+
+    if not base:
+        return
+
+    base = 'cthreepo.' + base.replace('/', '.')
+    try:
+        basemod = importlib.import_module(base)
+    except ModuleNotFoundError:
+        basemod = None
+    else:
+        keyobj = getattr(basemod, key, None)
+        if keyobj:
+            globals()[key] = keyobj
+        
 
 def parse_value(key, value, data, versions):
     ''' parse a value for versions '''
@@ -462,9 +505,23 @@ def expand_yaml(data):
         versions = value.get('versions', None)
         assert versions is not None, f'Must have a versions key set for object {key}'
         if changelog and isinstance(changelog, dict):
-            for ver, verdata in changelog.items():
-                for k, v in verdata.items():
-                    new = parse_value(k, v, changelog, versions)
-                    data[key]['changelog'][ver][k] = new
-    return data
+            for ver in versions:
+                if ver in changelog:
+                    # perform any parameter substitution
+                    verdata = changelog[ver]
+                    for k, v in verdata.items():
+                        new = parse_value(k, v, changelog, versions)
+                        changelog[ver][k] = new
+                else:
+                    # handle a version not in the changelog explicitly; use the defaults
+                    defaults = data[key].get('defaults', None)
+                    changelog[ver] = defaults
 
+            # remove the defaults keyword after expansion
+            __ = data[key].pop('defaults', None)
+
+            # remove any lingering NULL versions
+            changelog = {k: v for k, v in changelog.items() if v is not None}
+            data[key]['changelog'] = changelog
+
+    return data
