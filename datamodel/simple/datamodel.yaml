@@ -1,0 +1,11 @@
+name: simple
+description: list of simple specific datamodel attributes
+schema:
+  stuff:
+    name: Stuff
+    kind: string
+    required: False
+  versions:
+    name: Versions
+    kind: list(objects)
+    schema: versions.yaml 

@@ -1,0 +1,8 @@
+# simple catalog 
+catalog: 
+  name: Catalog
+  description: this is a catalog
+  datatype: catalog
+  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/images/1901.png
+  versions: [v1.0, v2.0, v3.0]
+  stuff: A 

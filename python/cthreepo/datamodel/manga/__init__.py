@@ -9,31 +9,12 @@
 # @Last Modified time: 2018-06-12 01:11:29
 
 from __future__ import print_function, division, absolute_import
-
-import os
-import pathlib
-from cthreepo.core.objects import generate_models, read_yaml, generate_products
-
-# define the datamodel path to here
-here = pathlib.Path(__file__).resolve()
-dm_idx = str(here).find('datamodel')
-segment = str(here)[dm_idx:].rsplit('/', 1)[0]
-
-# this is an example of reading in and instantiating the datamodel objects for manga
-datamodel_dir = os.environ['CTHREEPO_DIR'] / pathlib.Path(segment)
-files = []
-product_file = None
-for i in datamodel_dir.rglob('*.yaml'):
-    if i.stem not in ['datamodel', 'products']:
-        files.append(i)
-    elif i.stem == 'products':
-        product_file = i
-
-# create the datamodel structures, e.g. bintypes, templates, versions, etc
-for file in files:
-    data = read_yaml(file)
-    locals()[file.stem] = generate_models(data)
+from cthreepo.datamodel import DataModel
 
 
-# create the products
-products = generate_products(product_file, base=segment)
+class MaNGADataModel(DataModel):
+    survey = 'manga'
+
+
+# create the manga datamodel
+mdm = MaNGADataModel()

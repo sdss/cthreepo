@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 29th March 2019 10:04:16 am
+# Last Modified: Friday, 29th March 2019 12:36:06 pm
 # Modified By: Brian Cherinka
 
 
@@ -218,7 +218,7 @@ class BaseSchema(Schema):
 
     @post_load
     def make_object(self, data):
-        ''' this function serializes a schema to a class object '''
+        ''' this function deserializes a schema to a class object '''
         return self._class(**data)
 
 
@@ -269,7 +269,7 @@ def read_yaml(ymlfile):
             prodkeys = set(content.keys())
             dmkeys = set(dm['schema'].keys())
             notallowed = ', '.join(prodkeys - dmkeys)
-            assert prodkeys.issubset(dmkeys), f'{prodname} contains unallowed keys ({notallowed}) in datamodel schema' 
+            assert prodkeys.issubset(dmkeys), f'product "{prodname}" contains unallowed keys ({notallowed}) in datamodel schema'
 
     return data
 
@@ -418,8 +418,13 @@ def generate_products(ymlfile, name=None, make_fuzzy=True, base=None):
     models = schema().load(objects, many=many)
 
     if make_fuzzy and isinstance(models, list):
-        models = FuzzyList(models)
+        models = ProductList(models)
     return models
+
+
+class ProductList(FuzzyList):
+    def mapper(self, item):
+        return str(item.name.lower())
 
 
 def check_base(base, key):
@@ -468,7 +473,7 @@ def parse_value(key, value, data, versions):
     # split the value on +=, -=
     content = re.split(r'(\+=|\-=)', value)
     version, modifiers = content[0], content[1:]
-    assert version in versions, f'{versions} not in allowed list of versions'
+    assert version in versions, f'{version} not in allowed list of versions'
     
     # get the data for this version
     rel_data = data[version]
@@ -503,7 +508,7 @@ def expand_yaml(data):
     for key, value in data.items():
         changelog = value.get('changelog', None)
         versions = value.get('versions', None)
-        assert versions is not None, f'Must have a versions key set for object {key}'
+        assert versions is not None, f'Must have a "versions" key set for object: {key}'
         if changelog and isinstance(changelog, dict):
             for ver in versions:
                 if ver in changelog:
