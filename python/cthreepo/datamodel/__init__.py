@@ -12,23 +12,8 @@ from __future__ import print_function, division, absolute_import
 import os
 import pathlib
 from cthreepo.core.structs import FuzzyDict
-from cthreepo.core.objects import generate_models, read_yaml, generate_products
-
-
-def get_yaml_files(path, get='products'):
-    ''' '''
-    assert get in ['datamodel', 'products', 'models']
-    datamodel_dir = os.environ['CTHREEPO_DIR'] / pathlib.Path(path)
-    if get in ['products', 'datamodel']:
-        files = list(datamodel_dir.rglob(f'*{get}*.yaml'))
-        assert len(list(files)) == 1, f'there can only be one {get} file'
-        return files[0]
-    elif get == 'models':
-        files = []
-        for file in datamodel_dir.rglob('*.yaml'):
-            if file.stem not in ['datamodel', 'products']:
-                files.append(file)
-        return files
+from cthreepo.core.objects import generate_models, generate_products
+from cthreepo.utils.yaml import get_yaml_files, read_yaml
 
 
 class DataModel(object):
@@ -42,8 +27,8 @@ class DataModel(object):
         return super(DataModel, cls).__new__(cls, *args, **kwargs)
 
     def __init__(self):
-        self.products = generate_products(self._products_file, base=self._segment)
         self.models = self._generate_models()
+        self.products = generate_products(self._products_file, base=self._segment)
 
     def __repr__(self):
         return f'<{self.survey.title()}DataModel(n_products={len(self.products)})'

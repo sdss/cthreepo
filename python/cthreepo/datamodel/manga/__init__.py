@@ -17,4 +17,4 @@ class MaNGADataModel(DataModel):
 
 
 # create the manga datamodel
-mdm = MaNGADataModel()
+dm = MaNGADataModel()

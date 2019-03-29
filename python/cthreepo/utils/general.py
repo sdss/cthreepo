@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 29th March 2019 10:01:09 am
+# Last Modified: Friday, 29th March 2019 1:55:37 pm
 # Modified By: Brian Cherinka
 
 
@@ -29,6 +29,7 @@ def _check_fits(data):
         assert isinstance(data, six.string_types), 'input must be string filename or a FITS HDUList '
         data = fits.open(data)
     return data
+
 
 class ChangeLog(FuzzyList):
     ''' Class that holds the change log for a FITS file type 

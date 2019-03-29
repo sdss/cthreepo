@@ -7,44 +7,19 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 29th March 2019 12:36:06 pm
+# Last Modified: Friday, 29th March 2019 2:46:26 pm
 # Modified By: Brian Cherinka
 
 
 from __future__ import print_function, division, absolute_import
 
-import os
 import re
-import yaml
-import pathlib
 from marshmallow import Schema, fields, post_load
 from cthreepo.core.structs import FuzzyList
-from cthreepo.misc import log
-import cthreepo.datamodel as dm
+from cthreepo.utils.yaml import read_yaml, expand_yaml
+from cthreepo.utils.datamodel import find_datamodels
 
-p = pathlib.Path('../../../datamodel/')
-files = p.glob('**/*.yaml')
-
-#
 # examples
-#
-
-# with open('../../../datamodel/manga/bintypes.yaml', 'r') as f:
-#     e = yaml.load(f)
-
-
-class ObjectField(fields.Field):
-    ''' custom object field '''
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return ''
-        return value.release if hasattr(value, 'release') else value.name if hasattr(value, 'name') else ''
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        name = self.default
-        data = globals().get(name, None)
-        return data[value] if data else value
-
 
 class Bintype(object):
 
@@ -67,13 +42,6 @@ class BintypeSchema(Schema):
     @post_load
     def make_bintype(self, data):
         return Bintype(**data)
-
-
-# Bintype = type(e['schema']['name'], (object,), e['schema'])
-
-
-# with open('../../../datamodel/manga/templates.yaml', 'r') as f:
-#     e = yaml.load(f)
 
 
 class Template(object):
@@ -213,6 +181,8 @@ def create_field(data, key=None, required=None):
 
 class BaseSchema(Schema):
     ''' Base class for schema validation '''
+    _class = None
+    
     class Meta:
         ordered = True
 
@@ -248,83 +218,6 @@ def generate_models(data, make_fuzzy=True):
     return models
 
 
-def read_yaml(ymlfile):
-    ''' opens and reads a yaml datamodel file '''
-
-    if isinstance(ymlfile, str):
-        ymlfile = pathlib.Path(ymlfile)
-
-    with open(ymlfile, 'r') as f:
-        data = yaml.load(f)
-
-    if ymlfile.stem not in ['datamodel', 'products']:
-        assert 'schema' in data, 'datamodel file must contain a schema section'
-        assert 'objects' in data, 'datamodel file must contain an objects section'
-
-    # validate the products
-    if ymlfile.stem == 'products':
-        dm = find_datamodels(ymlfile)
-        data = expand_yaml(data)
-        for prodname, content in data.items():
-            prodkeys = set(content.keys())
-            dmkeys = set(dm['schema'].keys())
-            notallowed = ', '.join(prodkeys - dmkeys)
-            assert prodkeys.issubset(dmkeys), f'product "{prodname}" contains unallowed keys ({notallowed}) in datamodel schema'
-
-    return data
-
-
-def merge_datamodels(user, default):
-    """Merges datamodel files
-    alternative - try hiyapyco package or yamlload for merging purposes
-    """
-
-    if isinstance(user, dict) and isinstance(default, dict):
-        for kk, vv in default.items():
-            if kk not in user:
-                user[kk] = vv
-            else:
-                user[kk] = merge_datamodels(user[kk], vv)
-    elif isinstance(user, list) and isinstance(default, list):
-        for item in default:
-            if item not in user:
-                user.append(item)
-
-    return user
-
-
-def validate_datamodel(data):
-    ''' Validate the base datamodel schema '''
-
-    assert 'required_keys' in data, 'datamodel must contain a list of valid keys'
-    assert 'schema' in data, 'datamodel must have a schema entry'
-    keys = data['required_keys']
-    for key, value in data['schema'].items():
-        itemkeys = value.keys()
-        assert set(keys).issubset(set(itemkeys)), (f'datamodel attribute {key} must '
-                                                   f'contain the following keys: {",".join(keys)}')
-
-
-def find_datamodels(path):
-    ''' find all datamodel.yaml files up to a given path and merge them '''
-
-    path = path.resolve()
-    path = path.parent if path.is_file() else path
-
-    datamodel_dir = os.environ['CTHREEPO_DIR'] / pathlib.Path('datamodel')
-    datamodel = {}
-    for dirs, subdirs, files in os.walk(datamodel_dir):
-        if 'datamodel.yaml' in files and dirs in path.as_posix():
-            ymlfile = (pathlib.Path(dirs) / 'datamodel.yaml')
-            ymldata = read_yaml(ymlfile)
-            datamodel = merge_datamodels(ymldata, datamodel)
-        if dirs == path.as_posix():
-            break
-
-    validate_datamodel(datamodel)
-    return datamodel
-    
-####
 ## testing here
 
 
@@ -353,6 +246,20 @@ class ProductSchema(Schema):
     @post_load
     def make_object(self, data):
         return Product(**data)
+
+
+class ObjectField(fields.Field):
+    ''' custom object field '''
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return ''
+        return value.release if hasattr(value, 'release') else value.name if hasattr(value, 'name') else ''
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        name = self.default
+        data = globals().get(name, None)
+        return data[value] if data else value
 
 
 def create_product(data):
@@ -402,19 +309,36 @@ def create_product_schema(data, base=None, required=None):
     return objSchema
 
 
+def validate_products(data, schema):
+    ''' validate the products definition against the datamodel schema '''
+    data = expand_yaml(data)
+    for prodname, content in data.items():
+        prodkeys = set(content.keys())
+        dmkeys = set(schema['schema'].keys())
+        notallowed = ', '.join(prodkeys - dmkeys)
+        assert prodkeys.issubset(
+            dmkeys), f'product "{prodname}" contains unallowed keys ({notallowed}) in datamodel schema'
+    return data
+
+
 def generate_products(ymlfile, name=None, make_fuzzy=True, base=None):
-    ''' generate a list of vdatamodel types '''
+    ''' generate a list of datamodel types '''
+
+    assert ymlfile.stem == 'products', 'can only load products.yaml files'
 
     # generate the full datamodel schema
     dmschema = find_datamodels(ymlfile)
     schema = create_product_schema(dmschema, base=base)
     data = read_yaml(ymlfile)
     
+    # validate the products
+    data = validate_products(data, dmschema)
+
     # get the products data
     many = False if name else True
     objects = data.get(name, None) if name else data.values()
 
-    # serialize the object
+    # deserialize the object
     models = schema().load(objects, many=many)
 
     if make_fuzzy and isinstance(models, list):
@@ -442,91 +366,9 @@ def check_base(base, key):
     except ModuleNotFoundError:
         basemod = None
     else:
-        keyobj = getattr(basemod, key, None)
-        if keyobj:
-            globals()[key] = keyobj
+        dmobj = getattr(basemod, 'dm', None)
+        if dmobj:
+            values = dmobj.models.get(key, None)
+            if values:
+                globals()[key] = values
         
-
-def parse_value(key, value, data, versions):
-    ''' parse a value for versions '''
-
-    if not isinstance(value, str):
-        return value
-
-    value = value.replace(' ', '')
-
-    # check if the value has a version in it
-    version_patt = r'^(?:{0})'.format('|'.join(versions))
-    has_vers = re.search(version_patt, value)
-    if not has_vers:
-        assert '+=' not in value, f'{value} cannot have a += operator'
-        assert '-=' not in value, f'{value} cannot have a -= operator'
-        return value
-
-    # check format of string value
-    word_patt = r'([+-]=\[?\w+-?,?\w+\]?)+'
-    pattern = r'{0}{1}'.format(version_patt, word_patt)
-    match = re.search(pattern, value)
-    if not match:
-        raise ValueError('Syntax does not match the correct syntax: [ver] += XXX -= XXX')
-    
-    # split the value on +=, -=
-    content = re.split(r'(\+=|\-=)', value)
-    version, modifiers = content[0], content[1:]
-    assert version in versions, f'{version} not in allowed list of versions'
-    
-    # get the data for this version
-    rel_data = data[version]
-    assert key in rel_data, f'{key} not found in this release data'
-    
-    # get the original value content for the key
-    orig_data = rel_data[key].copy()
-
-    # loop over the modifiers by 2
-    for mod in modifiers[1::2]:
-        idx = modifiers.index(mod)
-        islist = re.search(r'\[(.*?)\]', mod)
-        # convert the string into a list
-        if islist:
-            modeval = islist.group(1).split(',')
-        else:
-            modeval = [mod]
-
-        # modify the original list of values
-        if modifiers[idx - 1] == '+=':
-            orig_data = list(set(orig_data) | set(modeval))
-        elif modifiers[idx - 1] == '-=':
-            orig_data = list(set(orig_data) - set(modeval))
-
-    return orig_data
-
-
-def expand_yaml(data):
-    '''expand the yaml with version substitution'''
-
-    # loop over the objects
-    for key, value in data.items():
-        changelog = value.get('changelog', None)
-        versions = value.get('versions', None)
-        assert versions is not None, f'Must have a "versions" key set for object: {key}'
-        if changelog and isinstance(changelog, dict):
-            for ver in versions:
-                if ver in changelog:
-                    # perform any parameter substitution
-                    verdata = changelog[ver]
-                    for k, v in verdata.items():
-                        new = parse_value(k, v, changelog, versions)
-                        changelog[ver][k] = new
-                else:
-                    # handle a version not in the changelog explicitly; use the defaults
-                    defaults = data[key].get('defaults', None)
-                    changelog[ver] = defaults
-
-            # remove the defaults keyword after expansion
-            __ = data[key].pop('defaults', None)
-
-            # remove any lingering NULL versions
-            changelog = {k: v for k, v in changelog.items() if v is not None}
-            data[key]['changelog'] = changelog
-
-    return data

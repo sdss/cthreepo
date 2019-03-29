@@ -7,7 +7,7 @@
 # Created: Wednesday, 27th March 2019 11:47:22 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 29th March 2019 12:10:53 pm
+# Last Modified: Friday, 29th March 2019 1:09:54 pm
 # Modified By: Brian Cherinka
 
 
@@ -20,5 +20,5 @@ class SimpleDataModel(DataModel):
 
 
 # create the manga datamodel
-sdm = SimpleDataModel()
+dm = SimpleDataModel()
 
