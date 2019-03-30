@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 25th January 2019 3:17:47 pm
+# Last Modified: Saturday, 30th March 2019 6:03:56 pm
 # Modified By: Brian Cherinka
 
 
@@ -27,6 +27,7 @@ class Fits(object):
         self.filename = None
         self._info = None
         self._determine_inputs(input, **kwargs)
+        breakpoint()
         self._parse_filename(filename)
         self._changes = None
 
@@ -40,10 +41,11 @@ class Fits(object):
     def _determine_inputs(self, input, **kwargs):
         ''' Determine the input '''
 
+        breakpoint()
         # no input at all
-        if not input or not hasattr(self, 'pathname'):
-            return
-
+        if not input and not hasattr(self, 'pathname'):
+            raise ValueError('No input has been provided to determine a valid file')
+        
         assert isinstance(input, six.string_types), 'input must be a string'
 
         # check if input is an sdss_access Path

@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Saturday, 30th March 2019 4:05:45 pm
+# Last Modified: Saturday, 30th March 2019 5:14:37 pm
 # Modified By: Brian Cherinka
 
 
@@ -264,6 +264,24 @@ class ObjectField(fields.Field):
         return data[value] if data and value in data else value
 
 
+class BaseProduct(object):
+    
+    def expand_product(self):
+        files = []
+        base_attrs = set(self._schema.fields.keys()) - {'changelog', 'versions'}
+        for version in self.versions:
+            attrs = {a: getattr(self, a, None) for a in base_attrs if hasattr(self, a)}
+            attrs.update({'version': version, '_parent': self})
+            if hasattr(self, 'changelog') and str(version) in self.changelog:
+                attrs.update(self.changelog[str(version)])
+            obj = type('Object', (object,), attrs)
+            def r(self):
+                return f'<Object(name={self.name},version={self.version})>'
+            obj.__repr__ = r
+            files.append(obj())
+        return FuzzyList(files)
+
+
 def create_product(data):
     ''' create a product class '''
     # define custom repr
@@ -288,7 +306,7 @@ def create_product(data):
         self._repr_fields = f'{name}' + repr_fields
 
     # create the new class and add the new methods
-    obj = type("Product", (object,), {})
+    obj = type("Product", (BaseProduct,), {})
     obj.__init__ = new_init
     obj.__repr__ = new_rep
     return obj
@@ -330,6 +348,7 @@ def create_product_schema(data, required=None, models=None):
         attrs['changelog'] = fields.Dict(keys=clkey, values=fields.Nested(cl))
 
     objSchema = type('ProductSchema', (BaseSchema,), attrs)
+    class_obj._schema = objSchema()
     return objSchema
 
 
