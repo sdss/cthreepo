@@ -7,14 +7,15 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 29th March 2019 2:46:26 pm
+# Last Modified: Saturday, 30th March 2019 4:05:45 pm
 # Modified By: Brian Cherinka
 
 
 from __future__ import print_function, division, absolute_import
 
+import six
 import re
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields, post_load, validate
 from cthreepo.core.structs import FuzzyList
 from cthreepo.utils.yaml import read_yaml, expand_yaml
 from cthreepo.utils.datamodel import find_datamodels
@@ -258,8 +259,9 @@ class ObjectField(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         name = self.default
-        data = globals().get(name, None)
-        return data[value] if data else value
+        assert isinstance(value, six.string_types), f'{value} must be a string'
+        data = self.models.get(name, None)
+        return data[value] if data and value in data else value
 
 
 def create_product(data):
@@ -292,21 +294,53 @@ def create_product(data):
     return obj
 
 
-def create_product_schema(data, base=None, required=None):
-    ''' create a product schema class '''
+def get_product_attrs(data, required=None):
     if 'schema' in data:
         attrs = {}
         for attr, values in data['schema'].items():
-            check_base(base, attr)
             attrs[attr] = create_field(values, key=attr, required=required)
     else:
         attrs = {}
+    return attrs
+
+
+def create_product_schema(data, required=None, models=None):
+    ''' create a product schema class '''
+
+    # get the attributes
+    attrs = get_product_attrs(data, required=required)
         
+    # create the product class
     class_obj = create_product(data)
     attrs['_class'] = class_obj
-    
+
+    # add the datamodel models
+    ObjectField.models = models
+
+    # create the changelog schema and modify the changelog attribute
+    if 'changelog' in attrs:
+        clattrs = get_product_attrs(data, required=False)
+        __ = clattrs.pop('changelog')
+        cl = type('ChangeLogSchema', (Schema,), clattrs)
+        versions = get_versions(models, data['schema'])
+        if not versions:
+            clkey = fields.String
+        else:
+            clkey = fields.String(validate=validate.OneOf(versions))
+        attrs['changelog'] = fields.Dict(keys=clkey, values=fields.Nested(cl))
+
     objSchema = type('ProductSchema', (BaseSchema,), attrs)
     return objSchema
+
+
+def get_versions(models, schema):
+    if 'versions' in models:
+        versions = [str(v) for v in models.versions]
+    elif 'versions' in schema:
+        versions = schema['versions']
+    else:
+        return None
+    return versions
 
 
 def validate_products(data, schema):
@@ -321,14 +355,14 @@ def validate_products(data, schema):
     return data
 
 
-def generate_products(ymlfile, name=None, make_fuzzy=True, base=None):
+def generate_products(ymlfile, name=None, make_fuzzy=True, base=None, models=None):
     ''' generate a list of datamodel types '''
 
     assert ymlfile.stem == 'products', 'can only load products.yaml files'
 
     # generate the full datamodel schema
     dmschema = find_datamodels(ymlfile)
-    schema = create_product_schema(dmschema, base=base)
+    schema = create_product_schema(dmschema, models=models)
     data = read_yaml(ymlfile)
     
     # validate the products

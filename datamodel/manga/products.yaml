@@ -1,6 +1,6 @@
-# manga logcube
-logcube:
-  name: LOGCUBE
+# manga cube
+cube:
+  name: CUBE
   description: |
     This is 3d spectral datacube, with two spatial dimensions and one spectral dimension.
     
@@ -23,10 +23,10 @@ logcube:
     MPL3:
       <<: *owave
 
-# manga logrss
-logrss:
-  name: LOGRSS
-  description: this is a manga logrss file
+# manga rss
+rss:
+  name: RSS
+  description: this is a manga rss file
   datatype: fits
   sdss_access: mangarss
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz

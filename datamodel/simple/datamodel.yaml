@@ -8,4 +8,4 @@ schema:
   versions:
     name: Versions
     kind: list(objects)
-    schema: versions.yaml 
+    #schema: versions.yaml 

@@ -11,7 +11,7 @@
 from __future__ import print_function, division, absolute_import
 import os
 import pathlib
-from cthreepo.core.structs import FuzzyDict
+from cthreepo.core.structs import FuzzyDict, FuzzyList
 from cthreepo.core.objects import generate_models, generate_products
 from cthreepo.utils.yaml import get_yaml_files, read_yaml
 
@@ -28,7 +28,7 @@ class DataModel(object):
 
     def __init__(self):
         self.models = self._generate_models()
-        self.products = generate_products(self._products_file, base=self._segment)
+        self.products = generate_products(self._products_file, base=self._segment, models=self.models)
 
     def __repr__(self):
         return f'<{self.survey.title()}DataModel(n_products={len(self.products)})'
@@ -51,3 +51,13 @@ class DataModel(object):
             #setattr(self, file.stem, generate_models(data))
             fd[file.stem] = generate_models(data)
         return FuzzyDict(fd)
+
+
+class SDSSDataModelList(FuzzyList):
+    def mapper(self, item):
+        return str(item.survey.lower())
+
+
+from .manga import dm as mdm
+from .simple import dm as sdm
+dm = SDSSDataModelList([mdm, sdm])
