@@ -40,6 +40,7 @@ schema: &dm
     kind: boolean
     required: False
     group: Default
+    default: False
   changelog:
     name: Changelog
     kind: dict
