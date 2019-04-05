@@ -30,12 +30,15 @@ NAME = 'cthreepo'
 
 
 # Loads config
-config = yaml.load(open(os.path.dirname(__file__) + '/etc/{0}.yml'.format(NAME)))
+with open(os.path.dirname(__file__) + '/etc/{0}.yml'.format(NAME)) as ff:
+    config = yaml.load(ff, Loader=yaml.FullLoader)
+
 
 # If there is a custom configuration file, updates the defaults using it.
 custom_config_fn = os.path.expanduser('~/.{0}/{0}.yml'.format(NAME))
 if os.path.exists(custom_config_fn):
-    config = merge(yaml.load(open(custom_config_fn)), config)
+    with open(custom_config_fn) as ff:
+        config = merge(yaml.load(ff, Loader=yaml.FullLoader), config)
 
 
 __version__ = '0.1.0dev'

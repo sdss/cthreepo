@@ -7,7 +7,7 @@
 # Created: Friday, 29th March 2019 1:46:58 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 29th March 2019 2:00:58 pm
+# Last Modified: Friday, 5th April 2019 6:37:00 am
 # Modified By: Brian Cherinka
 
 
@@ -41,7 +41,7 @@ def read_yaml(ymlfile):
         ymlfile = pathlib.Path(ymlfile)
 
     with open(ymlfile, 'r') as f:
-        data = yaml.load(f)
+        data = yaml.load(f, Loader=yaml.FullLoader)
 
     if ymlfile.stem not in ['datamodel', 'products']:
         assert 'schema' in data, 'datamodel file must contain a schema section'
