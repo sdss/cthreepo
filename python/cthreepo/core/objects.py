@@ -7,19 +7,21 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Thursday, 11th April 2019 4:45:45 pm
+# Last Modified: Friday, 12th April 2019 10:29:10 am
 # Modified By: Brian Cherinka
 
 
 from __future__ import print_function, division, absolute_import
 
-import six
+
+#
+# deprecating this file ; remove when ready
+#
+
 import re
-from marshmallow import Schema, fields, post_load, validate
+import six
+from marshmallow import Schema, fields, post_load
 from cthreepo.core.structs import FuzzyList
-from cthreepo.utils.yaml import read_yaml, expand_yaml
-from cthreepo.utils.datamodel import find_datamodels
-from cthreepo.utils.general import compute_changelog
 
 
 # examples
@@ -72,466 +74,460 @@ class TemplateSchema(Schema):
 #
 
 
-class BaseClass(object):
-    def __new__(cls, *args, **kwargs):
-        pass
+# class BaseClass(object):
+#     def __new__(cls, *args, **kwargs):
+#         pass
 
 
-def _get_attr(obj, name):
-    ''' Get an attribute from a class object '''
-    if hasattr(obj, name):
-        return obj.__getattribute__(name)
-    else:
-        return None
+# def _get_attr(obj, name):
+#     ''' Get an attribute from a class object '''
+#     if hasattr(obj, name):
+#         return obj.__getattribute__(name)
+#     else:
+#         return None
 
 
-def create_class(data):
-    ''' creates a new datamodel object class '''
+# def create_class(data):
+#     ''' creates a new datamodel object class '''
 
-    # define custom repr
-    def new_rep(self):
-        reprstr = f'<{data["name"]}({self._repr_fields})>'
-        return reprstr
+#     # define custom repr
+#     def new_rep(self):
+#         reprstr = f'<{data["name"]}({self._repr_fields})>'
+#         return reprstr
 
-    # define custom str
-    def new_str(self):
-        name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
-        return name
+#     # define custom str
+#     def new_str(self):
+#         name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
+#         return name
 
-    # get the attributes to add to the repr
-    if 'attributes' in data:
-        added_fields = [a for a, vals in data['attributes'].items() if vals.get('add_to_repr', None)]
+#     # get the attributes to add to the repr
+#     if 'attributes' in data:
+#         added_fields = [a for a, vals in data['attributes'].items() if vals.get('add_to_repr', None)]
 
-    # define a new init
-    def new_init(self, **kwargs):
-        repr_fields = ''
-        # loop for attributes
-        for key, value in list(kwargs.items()):
-            self.__setattr__(key, value)
-            # create a repr field string
-            if key in added_fields:
-                repr_fields += f', {key}={value}'
-        # create a string of the repr fields
-        name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
-        self._repr_fields = f'{name}' + repr_fields
+#     # define a new init
+#     def new_init(self, **kwargs):
+#         repr_fields = ''
+#         # loop for attributes
+#         for key, value in list(kwargs.items()):
+#             self.__setattr__(key, value)
+#             # create a repr field string
+#             if key in added_fields:
+#                 repr_fields += f', {key}={value}'
+#         # create a string of the repr fields
+#         name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
+#         self._repr_fields = f'{name}' + repr_fields
 
-    # create the new class and add the new methods
-    obj = type(data['name'], (object,), {})
-    obj.__init__ = new_init
-    obj.__repr__ = new_rep
-    obj.__str__ = new_str
-    return obj
+#     # create the new class and add the new methods
+#     obj = type(data['name'], (object,), {})
+#     obj.__init__ = new_init
+#     obj.__repr__ = new_rep
+#     obj.__str__ = new_str
+#     return obj
 
 
-def parse_kind(value):
-    ''' parse the kind value '''
-    subkind = re.search(r'\((.+?)\)', value)
-    if subkind:
-        kind = value.split('(', 1)[0]
-        subkind = subkind.group(1)
-    else:
-        kind = value
-        # set default list or tuple subfield to string
-        if kind.lower() == 'list':
-            subkind = 'string'
-        elif kind.lower() == 'tuple':
-            subkind = 'string'
+# def parse_kind(value):
+#     ''' parse the kind value '''
+#     subkind = re.search(r'\((.+?)\)', value)
+#     if subkind:
+#         kind = value.split('(', 1)[0]
+#         subkind = subkind.group(1)
+#     else:
+#         kind = value
+#         # set default list or tuple subfield to string
+#         if kind.lower() == 'list':
+#             subkind = 'string'
+#         elif kind.lower() == 'tuple':
+#             subkind = 'string'
         
-    return kind, subkind
+#     return kind, subkind
 
 
-def get_field(value, key=None):
-    ''' Get a Marshmallow Fields type '''
-    if hasattr(fields, value):
-        field = fields.__getattribute__(value)
-        return field
-    elif value == 'Objects':
-        return ObjectField(key)
-    else:
-        raise ValueError(f'Marshmallow Fields does not have {value}')
+# def get_field(value, key=None):
+#     ''' Get a Marshmallow Fields type '''
+#     if hasattr(fields, value):
+#         field = fields.__getattribute__(value)
+#         return field
+#     elif value == 'Objects':
+#         return ObjectField(key)
+#     else:
+#         raise ValueError(f'Marshmallow Fields does not have {value}')
 
 
-def create_field(data, key=None, required=None, nodefault=None):
-    ''' creates a marshmallow.fields '''
+# def create_field(data, key=None, required=None, nodefault=None):
+#     ''' creates a marshmallow.fields '''
 
-    # parse the kind of input
-    kind = data['kind'].title()
-    kind, subkind = parse_kind(kind)
-    # get the field
-    field = get_field(kind)
+#     # parse the kind of input
+#     kind = data['kind'].title()
+#     kind, subkind = parse_kind(kind)
+#     # get the field
+#     field = get_field(kind)
     
-    # create params
-    params = {}
-    params['required'] = data.get('required', False) if required is None else required
-    if 'default' in data and not nodefault:
-        params['missing'] = data.get('default', None)
-        params['default'] = data.get('default', None)
+#     # create params
+#     params = {}
+#     params['required'] = data.get('required', False) if required is None else required
+#     if 'default' in data and not nodefault:
+#         params['missing'] = data.get('default', None)
+#         params['default'] = data.get('default', None)
 
-    # create any args for sub-fields
-    args = []
-    if subkind:
-        skinds = subkind.split(',')
-        subfields = [get_field(i.title(), key=key) for i in skinds]
-        # differentiate args for lists and tuples
-        if kind == 'List':
-            assert len(subfields) == 1, 'List can only accept one subfield type.'
-            args.extend(subfields)
-        elif kind == 'Tuple':
-            args.append(subfields)
+#     # create any args for sub-fields
+#     args = []
+#     if subkind:
+#         skinds = subkind.split(',')
+#         subfields = [get_field(i.title(), key=key) for i in skinds]
+#         # differentiate args for lists and tuples
+#         if kind == 'List':
+#             assert len(subfields) == 1, 'List can only accept one subfield type.'
+#             args.extend(subfields)
+#         elif kind == 'Tuple':
+#             args.append(subfields)
 
-    return field(*args, **params)
+#     return field(*args, **params)
 
 
-class BaseSchema(Schema):
-    ''' Base class for schema validation '''
-    _class = None
+# class ObjectField(fields.Field):
+#     ''' custom object field '''
+
+#     def _serialize(self, value, attr, obj, **kwargs):
+#         if value is None:
+#             return ''
+#         return value.release if hasattr(value, 'release') else value.name if hasattr(value, 'name') else ''
+
+#     def _deserialize(self, value, attr, data, **kwargs):
+#         name = self.default
+#         assert isinstance(value, six.string_types), f'{value} must be a string'
+#         data = self.models.get(name, None)
+#         return data[value] if data and value in data else value
+
+
+# class BaseSchema(Schema):
+#     ''' Base class for schema validation '''
+#     _class = None
     
-    class Meta:
-        ordered = True
+#     class Meta:
+#         ordered = True
 
-    @post_load
-    def make_object(self, data):
-        ''' this function deserializes a schema to a class object '''
-        return self._class(**data)
+#     @post_load
+#     def make_object(self, data):
+#         ''' this function deserializes a schema to a class object '''
+#         return self._class(**data)
 
 
-def create_schema(data):
-    ''' creates a new class for schema validation '''
-    name = data['name']
-    if 'attributes' in data:
-        attrs = {}
-        for attr, values in data['attributes'].items():
-            attrs[attr] = create_field(values, key=attr)
-    else:
-        attrs = {}
+# def create_schema(data):
+#     ''' creates a new class for schema validation '''
+#     name = data['name']
+#     if 'attributes' in data:
+#         attrs = {}
+#         for attr, values in data['attributes'].items():
+#             attrs[attr] = create_field(values, key=attr)
+#     else:
+#         attrs = {}
 
-    class_obj = create_class(data)
-    attrs['_class'] = class_obj
+#     class_obj = create_class(data)
+#     attrs['_class'] = class_obj
 
-    objSchema = type(name + 'Schema', (BaseSchema,), attrs)
-    class_obj._schema = objSchema()
-    return objSchema
+#     objSchema = type(name + 'Schema', (BaseSchema,), attrs)
+#     class_obj._schema = objSchema()
+#     return objSchema
 
     
-def generate_models(data, make_fuzzy=True):
-    ''' generate a list of datamodel types '''
-    schema = create_schema(data['schema'])
-    models = schema().load(data['objects'], many=True)
-    if make_fuzzy:
-        models = FuzzyList(models)
-    return models
+# def generate_models(data, make_fuzzy=True):
+#     ''' generate a list of datamodel types '''
+#     schema = create_schema(data['schema'])
+#     models = schema().load(data['objects'], many=True)
+#     if make_fuzzy:
+#         models = FuzzyList(models)
+#     return models
 
 
 ## testing here
 
 
-class Product(object):
-    def __init__(self, name=None, description=None, datatype=None, sdss_access=None,
-                 example=None, versions=None):
-        self.name = name
-        self.description = description
-        self.datatype = datatype
-        self.sdss_access = sdss_access
-        self.example = example
-        self.versions = versions
+# class Product(object):
+#     def __init__(self, name=None, description=None, datatype=None, sdss_access=None,
+#                  example=None, versions=None):
+#         self.name = name
+#         self.description = description
+#         self.datatype = datatype
+#         self.sdss_access = sdss_access
+#         self.example = example
+#         self.versions = versions
 
-    def __repr__(self):
-        return f'<Product({self.name})>'
-
-
-class ProductSchema(Schema):
-    name = fields.Str(required=True)
-    description = fields.Str(required=True)
-    datatype = fields.Str(required=True)
-    sdss_access = fields.Str(required=True)
-    example = fields.Str(required=True)
-    versions = fields.List(fields.Str, required=True)
-
-    @post_load
-    def make_object(self, data):
-        return Product(**data)
+#     def __repr__(self):
+#         return f'<Product({self.name})>'
 
 
-class ObjectField(fields.Field):
-    ''' custom object field '''
+# class ProductSchema(Schema):
+#     name = fields.Str(required=True)
+#     description = fields.Str(required=True)
+#     datatype = fields.Str(required=True)
+#     sdss_access = fields.Str(required=True)
+#     example = fields.Str(required=True)
+#     versions = fields.List(fields.Str, required=True)
 
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return ''
-        return value.release if hasattr(value, 'release') else value.name if hasattr(value, 'name') else ''
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        name = self.default
-        assert isinstance(value, six.string_types), f'{value} must be a string'
-        data = self.models.get(name, None)
-        return data[value] if data and value in data else value
+#     @post_load
+#     def make_object(self, data):
+#         return Product(**data)
 
 
-class ObjectList(FuzzyList):
-    def mapper(self, item):
-        return str(item.version).lower()
+# class ObjectField(fields.Field):
+#     ''' custom object field '''
+
+#     def _serialize(self, value, attr, obj, **kwargs):
+#         if value is None:
+#             return ''
+#         return value.release if hasattr(value, 'release') else value.name if hasattr(value, 'name') else ''
+
+#     def _deserialize(self, value, attr, data, **kwargs):
+#         name = self.default
+#         assert isinstance(value, six.string_types), f'{value} must be a string'
+#         data = self.models.get(name, None)
+#         return data[value] if data and value in data else value
 
 
-class BaseProduct(object):
-    _changes = None 
+# class ObjectList(FuzzyList):
+#     def mapper(self, item):
+#         return str(item.version).lower()
+
+
+# class BaseProduct(object):
+#     _changes = None 
     
-    def expand_product(self):
-        files = []
-        base_attrs = set(self._schema.fields.keys()) - {'changelog', 'versions'}
-        for version in self.versions:
-            attrs = {a: getattr(self, a, None) for a in base_attrs if hasattr(self, a)}
-            attrs.update({'version': version, '_parent': self})
-            if hasattr(self, 'changelog') and str(version) in self.changelog:
-                attrs.update(self.changelog[str(version)])
-            obj = type('Object', (object,), attrs)
-            def r(self):
-                return f'<Object(name={self.name},version={self.version})>'
-            obj.__repr__ = r
-            files.append(obj())
-        return ObjectList(files)
+#     def expand_product(self):
+#         files = []
+#         base_attrs = set(self._schema.fields.keys()) - {'changelog', 'versions'}
+#         for version in self.versions:
+#             attrs = {a: getattr(self, a, None) for a in base_attrs if hasattr(self, a)}
+#             attrs.update({'version': version, '_parent': self})
+#             if hasattr(self, 'changelog') and str(version) in self.changelog:
+#                 attrs.update(self.changelog[str(version)])
+#             obj = type('Object', (object,), attrs)
+#             def r(self):
+#                 return f'<Object(name={self.name},version={self.version})>'
+#             obj.__repr__ = r
+#             files.append(obj())
+#         return ObjectList(files)
 
-    def compute_changelog(self):
-        if not self._changes:
-            self._changes = compute_changelog(self, change=self.datatype)
-        return self._changes
-
-
-from cthreepo.core.fits import Fits
+#     def compute_changelog(self):
+#         if not self._changes:
+#             self._changes = compute_changelog(self, change=self.datatype)
+#         return self._changes
 
 
-def _find_version(example, version):
-    ''' find a version value in an example '''
-
-    # need to assert version is a string or class instance; does not work yet
-    assert isinstance(version, (six.string_types, object)
-                      ), 'version can only be a string or an instance object'
-
-    # version is a string
-    if isinstance(version, six.string_types):
-        values = [version]
-    else:
-        # version is a class instance; dump the schema and grab values
-        values = version._schema.dump(version).values()
-
-    # only use unique values
-    values = list(set(values))
-    # perform regex search on example string
-    joined_vals = '|'.join(i for i in values if i)
-    found_vals = re.findall(joined_vals, example)
-
-    # if not found_vals:
-    #     raise ValueError('No version found.  Change this to warning.  Using given example file')
-
-    # convert to a list of tuples
-    #found_vals = list(tuple(found_vals))
-    return found_vals
+# from cthreepo.core.fits import Fits
 
 
-def _find_in_example(example, versions):
-    ''' find a version tag within an example file string '''
+# def _find_version(example, version):
+#     ''' find a version value in an example '''
 
-    # for a list of versions that is a string
-    vers = [v for v in versions if _find_version(example, v)]
-    vers = list(set(vers))
+#     # need to assert version is a string or class instance; does not work yet
+#     assert isinstance(version, (six.string_types, object)
+#                       ), 'version can only be a string or an instance object'
 
-    if len(vers) > 1:
-        # more than two versions found
-        ver = vers[0]
-    elif vers:
-        ver = vers[0]
-    else:
-        ver = None
-        raise ValueError('No version found.  Using given example file')
-    return ver
+#     # version is a string
+#     if isinstance(version, six.string_types):
+#         values = [version]
+#     else:
+#         # version is a class instance; dump the schema and grab values
+#         values = version._schema.dump(version).values()
 
+#     # only use unique values
+#     values = list(set(values))
+#     # perform regex search on example string
+#     joined_vals = '|'.join(i for i in values if i)
+#     found_vals = re.findall(joined_vals, example)
 
-def _replace_version(example, oldver, newver):
-    ''' replace the old version with the new in example '''
+#     # if not found_vals:
+#     #     raise ValueError('No version found.  Change this to warning.  Using given example file')
 
-    if isinstance(oldver, six.string_types):
-        assert isinstance(newver, six.string_types), 'newver must also be a string'
-        example = example.replace(oldver, newver)
-    else:
-        assert type(oldver) == type(newver), 'version classes must be of same type'    
-        odict = oldver._schema.dump(oldver)
-        ndict = newver._schema.dump(newver)
-        vers = list(zip(odict.values(), ndict.values()))
-        print('vers', vers)
-        for ver in vers:
-            if all(ver):
-                oldv, newv = ver
-                example = example.replace(oldv, newv)
-    return example
+#     # convert to a list of tuples
+#     #found_vals = list(tuple(found_vals))
+#     return found_vals
 
 
-def create_datatype(obj, version, base_attrs, example_ver=None):
-    ''' create the object datatypes when expanding a product '''
-    attrs = {a: getattr(obj, a, None) for a in base_attrs if hasattr(obj, a)}
-    attrs.update({'version': version, '_parent': obj})
-    if hasattr(obj, 'changelog') and str(version) in obj.changelog:
-        attrs.update(obj.changelog[str(version)])
+# def _find_in_example(example, versions):
+#     ''' find a version tag within an example file string '''
 
-    # need to assert version is a string or class instance; does not work yet
-    assert isinstance(version, (six.string_types, object)), 'version can only be a string or an instance object'
-    example = attrs.get('example', None)
-    if example:
-        if example_ver:
-            attrs['example'] = _replace_version(example, example_ver, version)
+#     # for a list of versions that is a string
+#     vers = [v for v in versions if _find_version(example, v)]
+#     vers = list(set(vers))
+
+#     if len(vers) > 1:
+#         # more than two versions found
+#         ver = vers[0]
+#     elif vers:
+#         ver = vers[0]
+#     else:
+#         ver = None
+#         raise ValueError('No version found.  Using given example file')
+#     return ver
+
+
+# def _replace_version(example, oldver, newver):
+#     ''' replace the old version with the new in example '''
+
+#     if isinstance(oldver, six.string_types):
+#         assert isinstance(newver, six.string_types), 'newver must also be a string'
+#         example = example.replace(oldver, newver)
+#     else:
+#         assert type(oldver) == type(newver), 'version classes must be of same type'    
+#         odict = oldver._schema.dump(oldver)
+#         ndict = newver._schema.dump(newver)
+#         vers = list(zip(odict.values(), ndict.values()))
+#         print('vers', vers)
+#         for ver in vers:
+#             if all(ver):
+#                 oldv, newv = ver
+#                 example = example.replace(oldv, newv)
+#     return example
+
+
+# def create_datatype(obj, version, base_attrs, example_ver=None):
+#     ''' create the object datatypes when expanding a product '''
+#     attrs = {a: getattr(obj, a, None) for a in base_attrs if hasattr(obj, a)}
+#     attrs.update({'version': version, '_parent': obj})
+#     if hasattr(obj, 'changelog') and str(version) in obj.changelog:
+#         attrs.update(obj.changelog[str(version)])
+
+#     # need to assert version is a string or class instance; does not work yet
+#     assert isinstance(version, (six.string_types, object)), 'version can only be a string or an instance object'
+#     example = attrs.get('example', None)
+#     if example:
+#         if example_ver:
+#             attrs['example'] = _replace_version(example, example_ver, version)
         
-    datatype = attrs.pop('datatype')
-    if datatype == 'fits':
-        inst = Fits.from_example(attrs['example'], version=version)
-    else:
-        obj = type('Object', (object,), attrs)
+#     datatype = attrs.pop('datatype')
+#     if datatype == 'fits':
+#         inst = Fits.from_example(attrs['example'], version=version)
+#     else:
+#         obj = type('Object', (object,), attrs)
 
-        def r(self):
-            return f'<Object(name={self.name},version={self.version})>'
-        obj.__repr__ = r
-        inst = obj()
+#         def r(self):
+#             return f'<Object(name={self.name},version={self.version})>'
+#         obj.__repr__ = r
+#         inst = obj()
 
-    return inst
-
-
-def create_product(data):
-    ''' create a product class '''
-    # define custom repr
-    def new_rep(self):
-        reprstr = f'<Product({self._repr_fields})>'
-        return reprstr
-
-    # get the attributes to add to the repr
-    added_fields = [a for a, vals in data['schema'].items() if vals.get('add_to_repr', None)]
-
-    # define a new init
-    def new_init(self, **kwargs):
-        repr_fields = ''
-        # loop for attributes
-        for key, value in list(kwargs.items()):
-            self.__setattr__(key, value)
-            # create a repr field string
-            if key in added_fields:
-                repr_fields += f', {key}={value}'
-        # create a string of the repr fields
-        name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
-        self._repr_fields = f'{name}' + repr_fields
-
-    # create the new class and add the new methods
-    obj = type("Product", (BaseProduct,), {})
-    obj.__init__ = new_init
-    obj.__repr__ = new_rep
-    return obj
+#     return inst
 
 
-def get_product_attrs(data, required=None, nodefault=None):
-    if 'schema' in data:
-        attrs = {}
-        for attr, values in data['schema'].items():
-            attrs[attr] = create_field(values, key=attr, required=required, nodefault=nodefault)
-    else:
-        attrs = {}
-    return attrs
+# def create_product(data):
+#     ''' create a product class '''
+#     # define custom repr
+#     def new_rep(self):
+#         reprstr = f'<Product({self._repr_fields})>'
+#         return reprstr
+
+#     # get the attributes to add to the repr
+#     added_fields = [a for a, vals in data['schema'].items() if vals.get('add_to_repr', None)]
+
+#     # define a new init
+#     def new_init(self, **kwargs):
+#         repr_fields = ''
+#         # loop for attributes
+#         for key, value in list(kwargs.items()):
+#             self.__setattr__(key, value)
+#             # create a repr field string
+#             if key in added_fields:
+#                 repr_fields += f', {key}={value}'
+#         # create a string of the repr fields
+#         name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
+#         self._repr_fields = f'{name}' + repr_fields
+
+#     # create the new class and add the new methods
+#     obj = type("Product", (BaseProduct,), {})
+#     obj.__init__ = new_init
+#     obj.__repr__ = new_rep
+#     return obj
 
 
-def create_product_schema(data, required=None, models=None):
-    ''' create a product schema class '''
+# def get_product_attrs(data, required=None, nodefault=None):
+#     if 'schema' in data:
+#         attrs = {}
+#         for attr, values in data['schema'].items():
+#             attrs[attr] = create_field(values, key=attr, required=required, nodefault=nodefault)
+#     else:
+#         attrs = {}
+#     return attrs
 
-    # get the attributes
-    attrs = get_product_attrs(data, required=required)
+
+# def create_product_schema(data, required=None, models=None):
+#     ''' create a product schema class '''
+
+#     # get the attributes
+#     attrs = get_product_attrs(data, required=required)
         
-    # create the product class
-    class_obj = create_product(data)
-    attrs['_class'] = class_obj
+#     # create the product class
+#     class_obj = create_product(data)
+#     attrs['_class'] = class_obj
 
-    # add the datamodel models
-    ObjectField.models = models
+#     # add the datamodel models
+#     ObjectField.models = models
 
-    # create the changelog schema and modify the changelog attribute
-    if 'changelog' in attrs:
-        clattrs = get_product_attrs(data, required=False, nodefault=True)
-        __ = clattrs.pop('changelog')
-        cl = type('ChangeLogSchema', (Schema,), clattrs)
-        versions = get_versions(models, data['schema'])
-        if not versions:
-            clkey = fields.String
-        else:
-            clkey = fields.String(validate=validate.OneOf(versions))
-        attrs['changelog'] = fields.Dict(keys=clkey, values=fields.Nested(cl))
+#     # create the changelog schema and modify the changelog attribute
+#     if 'changelog' in attrs:
+#         clattrs = get_product_attrs(data, required=False, nodefault=True)
+#         __ = clattrs.pop('changelog')
+#         cl = type('ChangeLogSchema', (Schema,), clattrs)
+#         versions = get_versions(models, data['schema'])
+#         if not versions:
+#             clkey = fields.String
+#         else:
+#             clkey = fields.String(validate=validate.OneOf(versions))
+#         attrs['changelog'] = fields.Dict(keys=clkey, values=fields.Nested(cl))
 
-    objSchema = type('ProductSchema', (BaseSchema,), attrs)
-    class_obj._schema = objSchema()
-    return objSchema
-
-
-def get_versions(models, schema):
-    if 'versions' in models:
-        versions = [str(v) for v in models.versions]
-    elif 'versions' in schema:
-        versions = schema['versions']
-    else:
-        return None
-    return versions
+#     objSchema = type('ProductSchema', (BaseSchema,), attrs)
+#     class_obj._schema = objSchema()
+#     return objSchema
 
 
-def validate_products(data, schema):
-    ''' validate the products definition against the datamodel schema '''
-    data = expand_yaml(data)
-    for prodname, content in data.items():
-        prodkeys = set(content.keys())
-        dmkeys = set(schema['schema'].keys())
-        notallowed = ', '.join(prodkeys - dmkeys)
-        assert prodkeys.issubset(
-            dmkeys), f'product "{prodname}" contains unallowed keys ({notallowed}) in datamodel schema'
-    return data
+# def get_versions(models, schema):
+#     if 'versions' in models:
+#         versions = [str(v) for v in models.versions]
+#     elif 'versions' in schema:
+#         versions = schema['versions']
+#     else:
+#         return None
+#     return versions
 
 
-def generate_products(ymlfile, name=None, make_fuzzy=True, base=None, models=None):
-    ''' generate a list of datamodel types '''
+# def validate_products(data, schema):
+#     ''' validate the products definition against the datamodel schema '''
+#     data = expand_yaml(data)
+#     for prodname, content in data.items():
+#         prodkeys = set(content.keys())
+#         dmkeys = set(schema['schema'].keys())
+#         notallowed = ', '.join(prodkeys - dmkeys)
+#         assert prodkeys.issubset(
+#             dmkeys), f'product "{prodname}" contains unallowed keys ({notallowed}) in datamodel schema'
+#     return data
 
-    assert ymlfile.stem == 'products', 'can only load products.yaml files'
 
-    # generate the full datamodel schema
-    dmschema = find_datamodels(ymlfile)
-    schema = create_product_schema(dmschema, models=models)
-    data = read_yaml(ymlfile)
+# def generate_products(ymlfile, name=None, make_fuzzy=True, base=None, models=None):
+#     ''' generate a list of datamodel types '''
+
+#     assert ymlfile.stem == 'products', 'can only load products.yaml files'
+
+#     # generate the full datamodel schema
+#     dmschema = find_datamodels(ymlfile)
+#     schema = create_product_schema(dmschema, models=models)
+#     data = read_yaml(ymlfile)
     
-    # validate the products
-    data = validate_products(data, dmschema)
+#     # validate the products
+#     data = validate_products(data, dmschema)
 
-    # get the products data
-    many = False if name else True
-    objects = data.get(name, None) if name else data.values()
+#     # get the products data
+#     many = False if name else True
+#     objects = data.get(name, None) if name else data.values()
 
-    # deserialize the object
-    models = schema().load(objects, many=many)
+#     # deserialize the object
+#     models = schema().load(objects, many=many)
 
-    if make_fuzzy and isinstance(models, list):
-        models = ProductList(models)
-    return models
-
-
-class ProductList(FuzzyList):
-    def mapper(self, item):
-        return str(item.name.lower())
+#     if make_fuzzy and isinstance(models, list):
+#         models = ProductList(models)
+#     return models
 
 
-def check_base(base, key):
-    ''' retrieve base module level and set an attribute into globals
-    TODO this needs replacing; and a better solution
-    '''
-    import importlib
+# class ProductList(FuzzyList):
+#     def mapper(self, item):
+#         return str(item.name.lower())
 
-    if not base:
-        return
 
-    base = 'cthreepo.' + base.replace('/', '.')
-    try:
-        basemod = importlib.import_module(base)
-    except ModuleNotFoundError:
-        basemod = None
-    else:
-        dmobj = getattr(basemod, 'dm', None)
-        if dmobj:
-            values = dmobj.models.get(key, None)
-            if values:
-                globals()[key] = values
-        

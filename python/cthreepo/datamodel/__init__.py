@@ -12,7 +12,8 @@ from __future__ import print_function, division, absolute_import
 import os
 import pathlib
 from cthreepo.core.structs import FuzzyDict, FuzzyList
-from cthreepo.core.objects import generate_models, generate_products
+from cthreepo.core.models import generate_models
+from cthreepo.core.products import generate_products
 from cthreepo.utils.yaml import get_yaml_files, read_yaml
 
 
