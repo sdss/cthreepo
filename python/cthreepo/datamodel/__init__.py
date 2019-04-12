@@ -29,7 +29,7 @@ class DataModel(object):
 
     def __init__(self):
         self.models = self._generate_models()
-        self.products = generate_products(self._products_file, base=self._segment, models=self.models)
+        self.products = generate_products(self._products_file, models=self.models)
 
     def __repr__(self):
         return f'<{self.survey.title()}DataModel(n_products={len(self.products)})'

@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 9:58:58 am
+# Last Modified: Friday, 12th April 2019 10:52:51 am
 # Modified By: Brian Cherinka
 
 
@@ -42,6 +42,7 @@ class FileObject(BaseObject):
         self.version = kwargs.pop('version', None)
         self._info = None
         self._changes = None
+        self.loaded = False
 
         # check inputs and produce filename
         self._determine_inputs(inputs, **kwargs)
@@ -114,6 +115,7 @@ class FileObject(BaseObject):
         return self._changes
 
 
+
 class Fits(FileObject):
 
     def __init__(self, inputs=None, filename=None, **kwargs):
@@ -125,7 +127,7 @@ class Fits(FileObject):
 
     def __repr__(self):
         return (f'Fits(name={self.filename}, version={self.version or "unknown"}, '
-                f'exists={self.file_exists})')
+                f'exists={self.file_exists}, loaded={self.loaded})')
     
     def _read_file(self):
         ''' Open and read the FITS file '''
@@ -138,6 +140,7 @@ class Fits(FileObject):
             self.hdulist = hdulist
             self.hdulist.verify()
             self._get_info()
+            self.loaded = True
     
     def _get_info(self):
         if not self._info:
@@ -150,4 +153,8 @@ class Fits(FileObject):
     def info(self):
         ''' prints the info from the file '''
         print(self._info)
+
+    def load(self):
+        if not self.loaded and self.file_exists:
+            self._read_file()
 

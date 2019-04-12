@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Wednesday, 10th April 2019 10:00:52 pm
+# Last Modified: Friday, 12th April 2019 12:32:48 pm
 # Modified By: Brian Cherinka
 
 
@@ -16,6 +16,7 @@ import six
 import abc
 from astropy.io import fits
 from cthreepo.core.structs import FuzzyList
+from cthreepo.misc import log
 
 
 def _indent(s):
@@ -32,7 +33,7 @@ def _check_fits(data):
 
 
 class ChangeLog(FuzzyList):
-    ''' Class that holds the change log for a FITS file type 
+    ''' Class that holds the change log for a FITS file type
     
     TODO - improve the repr and Fuzzylist
 
@@ -40,6 +41,9 @@ class ChangeLog(FuzzyList):
 
     def __init__(self, the_list, **kwargs):
         super(ChangeLog, self).__init__(the_list, **kwargs)
+
+    def mapper(self, item):
+        return 'diff_' + '_'.join(item.versions).lower()
 
 
 class FileDiff(abc.ABC, object):
@@ -134,38 +138,38 @@ class FitsDiff(FileDiff):
         return diffreport
 
 
-def _replace_version(name, version):
-    ''' Check if a version is a string, or tuple of versions '''
+# def _replace_version(name, version):
+#     ''' Check if a version is a string, or tuple of versions '''
 
-    # check version format
-    islist = isinstance(version, (list, tuple))
-    allstrings = all([isinstance(v, six.string_types) for v in sum(version, ())])
-    assert islist and allstrings, 'Version must be in the proper format'
+#     # check version format
+#     islist = isinstance(version, (list, tuple))
+#     allstrings = all([isinstance(v, six.string_types) for v in sum(version, ())])
+#     assert islist and allstrings, 'Version must be in the proper format'
 
-    # do string replacement
-    for ver in version:
-        oldv, newv = ver
-        name = name.replace(oldv, newv)
+#     # do string replacement
+#     for ver in version:
+#         oldv, newv = ver
+#         name = name.replace(oldv, newv)
 
-    return name
-
-
-def _format_versions(versions):
-    ''' orient the versions into the proper format '''
-
-    if isinstance(versions, dict):
-        versions = versions.values()
-    versions = list(versions)
-    # wrap string version in a tuple
-    versions = [(v,) if isinstance(v, six.string_types) else v for v in versions]
-    # create list of tuples of (v1, v2)
-    versions = list(zip(versions[:-1], versions[1:]))
-    # reformat the versions into tuples of by version column
-    versions = [tuple(zip(*v)) for v in versions]
-    return versions
+#     return name
 
 
-def compute_change(oldfile, otherfile, change='fits'):
+# def _format_versions(versions):
+#     ''' orient the versions into the proper format '''
+
+#     if isinstance(versions, dict):
+#         versions = versions.values()
+#     versions = list(versions)
+#     # wrap string version in a tuple
+#     versions = [(v,) if isinstance(v, six.string_types) else v for v in versions]
+#     # create list of tuples of (v1, v2)
+#     versions = list(zip(versions[:-1], versions[1:]))
+#     # reformat the versions into tuples of by version column
+#     versions = [tuple(zip(*v)) for v in versions]
+#     return versions
+
+
+def compute_change(oldfile, otherfile, change='fits', versions=None):
     ''' new changelog - produce a single changelog between two files '''
 
     import pathlib
@@ -183,114 +187,131 @@ def compute_change(oldfile, otherfile, change='fits'):
         diffobj = FitsDiff
 
     # compute file difference
-    fd = diffobj(name, other_name)
+    fd = diffobj(name, other_name, versions=versions)
 
     return fd
 
 
-def compute_changelog(obj, change='fits'):
-    ''' compute a changelog for all available versions of the FITS '''
-
-    # check if object has any versions set
-    if not hasattr(obj, 'versions'):
-        print('No versions found.  Cannot compute changelog')
-        return None
-
-    # check the type of file
-    if change == 'fits':
-        diffobj = FitsDiff
-
-    name = obj.fullpath
+def compute_changelog(items):
+    zipped = list(zip(items[:-1], items[1:]))
     fds = []
-
-    # reverse the releases
-    rev = {v: k for k, v in obj.versions.items()}
-    # reformat the versions
-    versions = _format_versions(obj.versions.values())
-
-    for vers in versions:
-        rel1, rel2 = [rev[v] for v in list(zip(*vers))]
-        new_name = _replace_version(name, vers)
-        try:
-            fd = diffobj(name, new_name, versions=[rel1, rel2])
-        except FileNotFoundError:
-            print(f'No file found for {new_name}')
+    for item in zipped:
+        v1 = str(item[0].version)
+        v2 = str(item[1].version)
+        exist1 = item[0].file_exists
+        exist2 = item[1].file_exists
+        if exist1 and exist2:
+            fds.append(compute_change(str(item[0].fullpath), str(
+                item[1].fullpath), versions=[v1, v2]))
         else:
-            name = new_name
-            fds.append(fd)
-
-    # for rel in releases[:-1]:
-    #     idx = releases.index(rel)
-    #     v1 = obj.versions[rel]
-    #     v2 = obj.versions[releases[idx + 1]]
-
-
-    #     name1 = name
-    #     name2 = (name1.replace(v1, v2))
-    #     fd = diffobj(name1, name2, versions=[v1, v2])
-    #     name = name2
-    #     fds.append(fd)
-
+            log.warning('One or more files does not exist.  Cannot compute changelog '
+                        f'for this changeset. Version {v1}: exists={exist1}; '
+                        f'Version {v2}: exists={exist2}')
     return ChangeLog(fds)
 
+# def compute_changelog(obj, change='fits'):
+#     ''' compute a changelog for all available versions of the FITS '''
 
-def reverse_parse(pattern, template):
-    ''' reverse parse an example filepath into sdss_access keyword components '''
+#     # check if object has any versions set
+#     if not hasattr(obj, 'versions'):
+#         print('No versions found.  Cannot compute changelog')
+#         return None
 
-    import os
-    import re
-    # expand the environment variable
-    pattern = os.path.expandvars(pattern)
-    # handle special functions; perform a drop in replacement
-    if re.match('%spectrodir', pattern):
-        pattern = re.sub('%spectrodir', os.environ['BOSS_SPECTRO_REDUX'], pattern)
-    elif re.search('%platedir', pattern):
-        pattern = re.sub('%platedir', '(.*)/{plateid:0>6}', pattern)
-    elif re.search('%definitiondir', pattern):
-        pattern = re.sub('%definitiondir', '{designid:0>6}', pattern)
-    if re.search('%plateid6', pattern):
-        pattern = re.sub('%plateid6', '{plateid:0>6}', pattern)
+#     # check the type of file
+#     if change == 'fits':
+#         diffobj = FitsDiff
+
+#     name = obj.fullpath
+#     fds = []
+
+#     # reverse the releases
+#     rev = {v: k for k, v in obj.versions.items()}
+#     # reformat the versions
+#     versions = _format_versions(obj.versions.values())
+
+#     for vers in versions:
+#         rel1, rel2 = [rev[v] for v in list(zip(*vers))]
+#         new_name = _replace_version(name, vers)
+#         try:
+#             fd = diffobj(name, new_name, versions=[rel1, rel2])
+#         except FileNotFoundError:
+#             print(f'No file found for {new_name}')
+#         else:
+#             name = new_name
+#             fds.append(fd)
+
+#     # for rel in releases[:-1]:
+#     #     idx = releases.index(rel)
+#     #     v1 = obj.versions[rel]
+#     #     v2 = obj.versions[releases[idx + 1]]
+
+
+#     #     name1 = name
+#     #     name2 = (name1.replace(v1, v2))
+#     #     fd = diffobj(name1, name2, versions=[v1, v2])
+#     #     name = name2
+#     #     fds.append(fd)
+
+#     return ChangeLog(fds)
+
+
+# def reverse_parse(pattern, template):
+#     ''' reverse parse an example filepath into sdss_access keyword components '''
+
+#     import os
+#     import re
+#     # expand the environment variable
+#     pattern = os.path.expandvars(pattern)
+#     # handle special functions; perform a drop in replacement
+#     if re.match('%spectrodir', pattern):
+#         pattern = re.sub('%spectrodir', os.environ['BOSS_SPECTRO_REDUX'], pattern)
+#     elif re.search('%platedir', pattern):
+#         pattern = re.sub('%platedir', '(.*)/{plateid:0>6}', pattern)
+#     elif re.search('%definitiondir', pattern):
+#         pattern = re.sub('%definitiondir', '{designid:0>6}', pattern)
+#     if re.search('%plateid6', pattern):
+#         pattern = re.sub('%plateid6', '{plateid:0>6}', pattern)
         
-    # check if pattern has any brackets
-    haskwargs = re.search('[{}]', pattern)
-    if not haskwargs:
-        return None
+#     # check if pattern has any brackets
+#     haskwargs = re.search('[{}]', pattern)
+#     if not haskwargs:
+#         return None
 
-    # escape the envvar $ and any dots
-    subpatt = pattern.replace('$', '\\$').replace('.', '\\.')
-    # define search pattern; replace all template keywords with regex "(.*)" group
-    research = re.sub('{(.*?)}', '(.*)', subpatt)
-    # look for matches in pattern and template
-    pmatch = re.search(research, pattern)
-    tmatch = re.search(research, template)
+#     # escape the envvar $ and any dots
+#     subpatt = pattern.replace('$', '\\$').replace('.', '\\.')
+#     # define search pattern; replace all template keywords with regex "(.*)" group
+#     research = re.sub('{(.*?)}', '(.*)', subpatt)
+#     # look for matches in pattern and template
+#     pmatch = re.search(research, pattern)
+#     tmatch = re.search(research, template)
     
-    path_dict = {}
-    # if template match extract keys and values from the match groups
-    if pmatch and tmatch:
-        values = tmatch.groups(0)
-        keys = pmatch.groups(0)
-        assert len(keys) == len(values), 'pattern and template matches must have same length'
-        parts = zip(keys, values)
-        # parse into dictionary
-        for part in parts:
-            value = part[1]
-            if re.findall('{(.*?)}', part[0]):
-                # get the key name inside the brackets
-                keys = re.findall('{(.*?)}', part[0])
-                # remove the type : designation
-                keys = [k.split(':')[0] for k in keys]
-                # handle double bracket cases
-                if len(keys) > 1:
-                    if keys[0] == 'dr':
-                        drval = re.match('^DR[1-9][0-9]', value).group(0)
-                        otherval = value.split(drval)[-1]
-                        pdict = {keys[0]: drval, keys[1]: otherval}
-                    elif keys[0] in ['rc', 'br', 'filter', 'camrow']:
-                        pdict = {keys[0]: value[0], keys[1]: value[1:]}
-                    else:
-                        raise ValueError('This case has not yet been accounted for.')
-                    path_dict.update(pdict)
-                else:
-                    path_dict[keys[0]] = value
-    return path_dict
+#     path_dict = {}
+#     # if template match extract keys and values from the match groups
+#     if pmatch and tmatch:
+#         values = tmatch.groups(0)
+#         keys = pmatch.groups(0)
+#         assert len(keys) == len(values), 'pattern and template matches must have same length'
+#         parts = zip(keys, values)
+#         # parse into dictionary
+#         for part in parts:
+#             value = part[1]
+#             if re.findall('{(.*?)}', part[0]):
+#                 # get the key name inside the brackets
+#                 keys = re.findall('{(.*?)}', part[0])
+#                 # remove the type : designation
+#                 keys = [k.split(':')[0] for k in keys]
+#                 # handle double bracket cases
+#                 if len(keys) > 1:
+#                     if keys[0] == 'dr':
+#                         drval = re.match('^DR[1-9][0-9]', value).group(0)
+#                         otherval = value.split(drval)[-1]
+#                         pdict = {keys[0]: drval, keys[1]: otherval}
+#                     elif keys[0] in ['rc', 'br', 'filter', 'camrow']:
+#                         pdict = {keys[0]: value[0], keys[1]: value[1:]}
+#                     else:
+#                         raise ValueError('This case has not yet been accounted for.')
+#                     path_dict.update(pdict)
+#                 else:
+#                     path_dict[keys[0]] = value
+#     return path_dict
 

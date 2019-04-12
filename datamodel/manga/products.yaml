@@ -79,6 +79,7 @@ maps:
       templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
       default_bintype: NONE
       default_template: MIUSCAT-THIN
+      example: mangawork/manga/spectro/analysis/v1_5_1/1.1.1/8485/1901/manga-8485-1901-LOGMAPS_BIN-NONE-013.fits
     MPL5: &mpl5
       example: mangawork/manga/spectro/analysis/v2_0_1/2.0.2/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
       sdss_access: mangadap5
@@ -93,7 +94,7 @@ maps:
       <<: *mpl5
       bintypes: [HYB10, VOR10]
       default_bintype: HYB10
-      example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-MILESHC-MILESHC/8485/1901/manga-8485-1901-MAPS-HYB10-MILESHC-MILESHC.fits.gz
+      example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-HYB10-GAU-MILESHC.fits.gz
     DR15: 
       <<: *dr15
     MPL8:

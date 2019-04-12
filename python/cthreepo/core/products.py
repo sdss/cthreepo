@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 10:34:28 am
+# Last Modified: Friday, 12th April 2019 12:52:32 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -22,6 +22,7 @@ from cthreepo.core.structs import FuzzyList
 from cthreepo.utils.yaml import read_yaml, expand_yaml
 from cthreepo.utils.datamodel import find_datamodels
 from cthreepo.core.models import BaseSchema, create_field, _get_attr, ObjectField
+from cthreepo.misc import log 
 
 # core classes
 
@@ -38,28 +39,67 @@ class ProductList(FuzzyList):
 
 class BaseProduct(object):
     _changes = None
+    _expanded = None
 
     def expand_product(self):
+
+        if self._expanded is not None:
+            return self._expanded
+
         files = []
-        base_attrs = set(self._schema.fields.keys()) - {'changelog', 'versions'}
+        self._base_attrs = set(self._schema.fields.keys()) - {'changelog', 'versions'}
+        example = getattr(self, 'example', None)
+        example_ver = _find_in_example(example, self.versions) if example else None
         for version in self.versions:
-            attrs = {a: getattr(self, a, None) for a in base_attrs if hasattr(self, a)}
-            attrs.update({'version': version, '_parent': self})
-            if hasattr(self, 'changelog') and str(version) in self.changelog:
-                attrs.update(self.changelog[str(version)])
+            inst = self._create_datatype(version, example_ver=example_ver)
+            files.append(inst)
+        return ObjectList(files)
+
+    def compute_changelog(self):
+        if not self._changes:
+            # get expanded products
+            if not self._expanded:
+                self._expanded = self.expand_product()
+            
+            # only get changes for files that exist
+            exists = [i for i in self._expanded if i.file_exists]
+            rev_list = list(reversed(exists))
+
+            if len(exists) != len(self._expanded):
+                log.warning('One or more product files do not exist. Changelog will be incomplete')
+            
+            self._changes = compute_changelog(rev_list)
+        return self._changes
+
+    def _create_datatype(self, version, example_ver=None):
+        ''' create a datatype object '''
+
+        attrs = {a: getattr(self, a, None) for a in self._base_attrs if hasattr(self, a)}
+        attrs.update({'version': version, '_parent': self})
+        if hasattr(self, 'changelog') and str(version) in self.changelog:
+            attrs.update(self.changelog[str(version)])
+
+        # need to assert version is a string or class instance; does not work yet
+        assert isinstance(version, (six.string_types, object)
+                        ), 'version can only be a string or an instance object'
+        example = attrs.get('example', None)
+        if example:
+            if example_ver:
+                attrs['example'] = _replace_version(example, example_ver, version)
+
+        datatype = attrs.pop('datatype')
+        if datatype == 'fits':
+            inst = Fits.from_example(attrs['example'], version=version)
+        else:
             obj = type('Object', (object,), attrs)
 
             def r(self):
                 return f'<Object(name={self.name},version={self.version})>'
             obj.__repr__ = r
-            files.append(obj())
-        return ObjectList(files)
+            inst = obj()
 
-    def compute_changelog(self):
-        if not self._changes:
-            self._changes = compute_changelog(self, change=self.datatype)
-        return self._changes
-
+        return inst
+    
 # main/helper functions
 
 
@@ -120,41 +160,11 @@ def _replace_version(example, oldver, newver):
         odict = oldver._schema.dump(oldver)
         ndict = newver._schema.dump(newver)
         vers = list(zip(odict.values(), ndict.values()))
-        print('vers', vers)
         for ver in vers:
             if all(ver):
                 oldv, newv = ver
                 example = example.replace(oldv, newv)
     return example
-
-
-def create_datatype(obj, version, base_attrs, example_ver=None):
-    ''' create the object datatypes when expanding a product '''
-    attrs = {a: getattr(obj, a, None) for a in base_attrs if hasattr(obj, a)}
-    attrs.update({'version': version, '_parent': obj})
-    if hasattr(obj, 'changelog') and str(version) in obj.changelog:
-        attrs.update(obj.changelog[str(version)])
-
-    # need to assert version is a string or class instance; does not work yet
-    assert isinstance(version, (six.string_types, object)
-                      ), 'version can only be a string or an instance object'
-    example = attrs.get('example', None)
-    if example:
-        if example_ver:
-            attrs['example'] = _replace_version(example, example_ver, version)
-
-    datatype = attrs.pop('datatype')
-    if datatype == 'fits':
-        inst = Fits.from_example(attrs['example'], version=version)
-    else:
-        obj = type('Object', (object,), attrs)
-
-        def r(self):
-            return f'<Object(name={self.name},version={self.version})>'
-        obj.__repr__ = r
-        inst = obj()
-
-    return inst
 
 
 def create_product(data):
@@ -250,7 +260,7 @@ def validate_products(data, schema):
     return data
 
 
-def generate_products(ymlfile, name=None, make_fuzzy=True, base=None, models=None):
+def generate_products(ymlfile, name=None, make_fuzzy=True, models=None):
     ''' generate a list of datamodel types '''
 
     assert ymlfile.stem == 'products', 'can only load products.yaml files'
