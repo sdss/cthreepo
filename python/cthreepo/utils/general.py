@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Thursday, 4th April 2019 4:43:47 pm
+# Last Modified: Wednesday, 10th April 2019 10:00:52 pm
 # Modified By: Brian Cherinka
 
 
@@ -47,9 +47,9 @@ class FileDiff(abc.ABC, object):
 
     def __init__(self, file1, file2, versions=None, diff_type=None):
         self.diff_type = diff_type
-        self.versions = versions or ['v2', 'v1']
-        self.example1 = file1
-        self.example2 = file2
+        self.versions = versions or ['A', 'B']
+        self.file1 = str(file1)
+        self.file2 = str(file2)
 
     def __repr__(self):
         return f"<FileDiff (versions='{','.join(self.versions)}', diff_type='{self.diff_type}')>"
@@ -67,8 +67,8 @@ class FitsDiff(FileDiff):
         super(FitsDiff, self).__init__(file1, file2, diff_type='fits', versions=versions)
 
         # get the HDU lists
-        self.hdulist = _check_fits(file1)
-        self.hdulist2 = _check_fits(file2)
+        self.hdulist = _check_fits(self.file1)
+        self.hdulist2 = _check_fits(self.file2)
 
         # HDU differences
         n_hdus = len(self.hdulist)
@@ -97,6 +97,7 @@ class FitsDiff(FileDiff):
         if not isinstance(data, fits.hdu.hdulist.HDUList):
             assert isinstance(
                 data, six.string_types), 'input must be string filename or a FITS HDUList '
+            assert '.fits' in data, 'No .fits suffix found.  Is this a proper FITS file?'
             data = fits.open(data)
         return data
 
@@ -164,6 +165,29 @@ def _format_versions(versions):
     return versions
 
 
+def compute_change(oldfile, otherfile, change='fits'):
+    ''' new changelog - produce a single changelog between two files '''
+
+    import pathlib
+
+    # check old filename
+    name = pathlib.Path(oldfile)
+    assert name.exists(), f'{name} must exist'
+
+    # check other filename
+    other_name = pathlib.Path(otherfile)
+    assert other_name.exists(), f'{otherfile} must exist'
+
+    # check the type of file
+    if change == 'fits':
+        diffobj = FitsDiff
+
+    # compute file difference
+    fd = diffobj(name, other_name)
+
+    return fd
+
+
 def compute_changelog(obj, change='fits'):
     ''' compute a changelog for all available versions of the FITS '''
 
@@ -189,7 +213,7 @@ def compute_changelog(obj, change='fits'):
         new_name = _replace_version(name, vers)
         try:
             fd = diffobj(name, new_name, versions=[rel1, rel2])
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             print(f'No file found for {new_name}')
         else:
             name = new_name

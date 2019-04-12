@@ -7,7 +7,7 @@
 # Created: Saturday, 16th March 2019 10:15:16 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Monday, 1st April 2019 4:05:23 pm
+# Last Modified: Thursday, 11th April 2019 4:45:45 pm
 # Modified By: Brian Cherinka
 
 
@@ -19,6 +19,8 @@ from marshmallow import Schema, fields, post_load, validate
 from cthreepo.core.structs import FuzzyList
 from cthreepo.utils.yaml import read_yaml, expand_yaml
 from cthreepo.utils.datamodel import find_datamodels
+from cthreepo.utils.general import compute_changelog
+
 
 # examples
 
@@ -149,7 +151,7 @@ def get_field(value, key=None):
         raise ValueError(f'Marshmallow Fields does not have {value}')
 
 
-def create_field(data, key=None, required=None):
+def create_field(data, key=None, required=None, nodefault=None):
     ''' creates a marshmallow.fields '''
 
     # parse the kind of input
@@ -161,7 +163,7 @@ def create_field(data, key=None, required=None):
     # create params
     params = {}
     params['required'] = data.get('required', False) if required is None else required
-    if 'default' in data:
+    if 'default' in data and not nodefault:
         params['missing'] = data.get('default', None)
         params['default'] = data.get('default', None)
 
@@ -207,6 +209,7 @@ def create_schema(data):
     attrs['_class'] = class_obj
 
     objSchema = type(name + 'Schema', (BaseSchema,), attrs)
+    class_obj._schema = objSchema()
     return objSchema
 
     
@@ -264,7 +267,13 @@ class ObjectField(fields.Field):
         return data[value] if data and value in data else value
 
 
+class ObjectList(FuzzyList):
+    def mapper(self, item):
+        return str(item.version).lower()
+
+
 class BaseProduct(object):
+    _changes = None 
     
     def expand_product(self):
         files = []
@@ -279,7 +288,108 @@ class BaseProduct(object):
                 return f'<Object(name={self.name},version={self.version})>'
             obj.__repr__ = r
             files.append(obj())
-        return FuzzyList(files)
+        return ObjectList(files)
+
+    def compute_changelog(self):
+        if not self._changes:
+            self._changes = compute_changelog(self, change=self.datatype)
+        return self._changes
+
+
+from cthreepo.core.fits import Fits
+
+
+def _find_version(example, version):
+    ''' find a version value in an example '''
+
+    # need to assert version is a string or class instance; does not work yet
+    assert isinstance(version, (six.string_types, object)
+                      ), 'version can only be a string or an instance object'
+
+    # version is a string
+    if isinstance(version, six.string_types):
+        values = [version]
+    else:
+        # version is a class instance; dump the schema and grab values
+        values = version._schema.dump(version).values()
+
+    # only use unique values
+    values = list(set(values))
+    # perform regex search on example string
+    joined_vals = '|'.join(i for i in values if i)
+    found_vals = re.findall(joined_vals, example)
+
+    # if not found_vals:
+    #     raise ValueError('No version found.  Change this to warning.  Using given example file')
+
+    # convert to a list of tuples
+    #found_vals = list(tuple(found_vals))
+    return found_vals
+
+
+def _find_in_example(example, versions):
+    ''' find a version tag within an example file string '''
+
+    # for a list of versions that is a string
+    vers = [v for v in versions if _find_version(example, v)]
+    vers = list(set(vers))
+
+    if len(vers) > 1:
+        # more than two versions found
+        ver = vers[0]
+    elif vers:
+        ver = vers[0]
+    else:
+        ver = None
+        raise ValueError('No version found.  Using given example file')
+    return ver
+
+
+def _replace_version(example, oldver, newver):
+    ''' replace the old version with the new in example '''
+
+    if isinstance(oldver, six.string_types):
+        assert isinstance(newver, six.string_types), 'newver must also be a string'
+        example = example.replace(oldver, newver)
+    else:
+        assert type(oldver) == type(newver), 'version classes must be of same type'    
+        odict = oldver._schema.dump(oldver)
+        ndict = newver._schema.dump(newver)
+        vers = list(zip(odict.values(), ndict.values()))
+        print('vers', vers)
+        for ver in vers:
+            if all(ver):
+                oldv, newv = ver
+                example = example.replace(oldv, newv)
+    return example
+
+
+def create_datatype(obj, version, base_attrs, example_ver=None):
+    ''' create the object datatypes when expanding a product '''
+    attrs = {a: getattr(obj, a, None) for a in base_attrs if hasattr(obj, a)}
+    attrs.update({'version': version, '_parent': obj})
+    if hasattr(obj, 'changelog') and str(version) in obj.changelog:
+        attrs.update(obj.changelog[str(version)])
+
+    # need to assert version is a string or class instance; does not work yet
+    assert isinstance(version, (six.string_types, object)), 'version can only be a string or an instance object'
+    example = attrs.get('example', None)
+    if example:
+        if example_ver:
+            attrs['example'] = _replace_version(example, example_ver, version)
+        
+    datatype = attrs.pop('datatype')
+    if datatype == 'fits':
+        inst = Fits.from_example(attrs['example'], version=version)
+    else:
+        obj = type('Object', (object,), attrs)
+
+        def r(self):
+            return f'<Object(name={self.name},version={self.version})>'
+        obj.__repr__ = r
+        inst = obj()
+
+    return inst
 
 
 def create_product(data):
@@ -312,11 +422,11 @@ def create_product(data):
     return obj
 
 
-def get_product_attrs(data, required=None):
+def get_product_attrs(data, required=None, nodefault=None):
     if 'schema' in data:
         attrs = {}
         for attr, values in data['schema'].items():
-            attrs[attr] = create_field(values, key=attr, required=required)
+            attrs[attr] = create_field(values, key=attr, required=required, nodefault=nodefault)
     else:
         attrs = {}
     return attrs
@@ -337,7 +447,7 @@ def create_product_schema(data, required=None, models=None):
 
     # create the changelog schema and modify the changelog attribute
     if 'changelog' in attrs:
-        clattrs = get_product_attrs(data, required=False)
+        clattrs = get_product_attrs(data, required=False, nodefault=True)
         __ = clattrs.pop('changelog')
         cl = type('ChangeLogSchema', (Schema,), clattrs)
         versions = get_versions(models, data['schema'])

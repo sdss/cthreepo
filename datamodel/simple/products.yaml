@@ -3,6 +3,6 @@ catalog:
   name: Catalog
   description: this is a catalog
   datatype: catalog
-  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/images/1901.png
+  example: simple/catalogs/catalogA_v3.0.csv
   versions: [v1.0, v2.0, v3.0]
   stuff: A 

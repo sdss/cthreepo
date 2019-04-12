@@ -5,7 +5,3 @@ schema:
     name: Stuff
     kind: string
     required: False
-  versions:
-    name: Versions
-    kind: list(objects)
-    #schema: versions.yaml 
