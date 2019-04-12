@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 10:31:42 am
+# Last Modified: Friday, 12th April 2019 10:34:28 am
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -24,33 +24,6 @@ from cthreepo.utils.datamodel import find_datamodels
 from cthreepo.core.models import BaseSchema, create_field, _get_attr, ObjectField
 
 # core classes
-
-
-class Product(object):
-    def __init__(self, name=None, description=None, datatype=None, sdss_access=None,
-                 example=None, versions=None):
-        self.name = name
-        self.description = description
-        self.datatype = datatype
-        self.sdss_access = sdss_access
-        self.example = example
-        self.versions = versions
-
-    def __repr__(self):
-        return f'<Product({self.name})>'
-
-
-class ProductSchema(Schema):
-    name = fields.Str(required=True)
-    description = fields.Str(required=True)
-    datatype = fields.Str(required=True)
-    sdss_access = fields.Str(required=True)
-    example = fields.Str(required=True)
-    versions = fields.List(fields.Str, required=True)
-
-    @post_load
-    def make_object(self, data):
-        return Product(**data)
 
 
 class ObjectList(FuzzyList):
