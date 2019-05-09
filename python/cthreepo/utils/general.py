@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 12:32:48 pm
+# Last Modified: Friday, 12th April 2019 2:12:03 pm
 # Modified By: Brian Cherinka
 
 
@@ -169,7 +169,7 @@ class FitsDiff(FileDiff):
 #     return versions
 
 
-def compute_change(oldfile, otherfile, change='fits', versions=None):
+def compute_diff(oldfile, otherfile, change='fits', versions=None):
     ''' new changelog - produce a single changelog between two files '''
 
     import pathlib
@@ -201,7 +201,7 @@ def compute_changelog(items):
         exist1 = item[0].file_exists
         exist2 = item[1].file_exists
         if exist1 and exist2:
-            fds.append(compute_change(str(item[0].fullpath), str(
+            fds.append(compute_diff(str(item[0].fullpath), str(
                 item[1].fullpath), versions=[v1, v2]))
         else:
             log.warning('One or more files does not exist.  Cannot compute changelog '

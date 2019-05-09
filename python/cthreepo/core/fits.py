@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 10:52:51 am
+# Last Modified: Thursday, 2nd May 2019 7:26:17 pm
 # Modified By: Brian Cherinka
 
 
@@ -18,28 +18,30 @@ import pathlib
 from io import StringIO
 from astropy.io import fits
 from sdss_access.path import Path
-from cthreepo.utils.general import compute_change
+from cthreepo.utils.general import compute_diff
 
 
 class BaseObject(object):
 
-    def __init__(self, product=None, version=None, **kwargs):
+    def __init__(self, product=None, version=None):
         self.product = product
         self.version = version
         
     def __repr__(self):
-        return f'<Object(name={self.product},version={self.version})>'
+        return f'<Object(name={self.product}, version={self.version})>'
 
 
 class FileObject(BaseObject):
-    
+    path = Path()
+
     def __init__(self, inputs=None, filename=None, **kwargs):
-        super(FileObject, self).__init__(self, **kwargs)
-        self.path = Path()
+        product = kwargs.pop('product', None)
+        version = kwargs.pop('version', None)
+        super(FileObject, self).__init__(product=product, version=version)
+        self.path.replant_tree(str(version))
         self.filename = filename
         self.path_name = kwargs.pop('path_name', None)
         self.parent = kwargs.pop('parent', None)
-        self.version = kwargs.pop('version', None)
         self._info = None
         self._changes = None
         self.loaded = False
@@ -93,13 +95,27 @@ class FileObject(BaseObject):
         #     raise NameError('{0} not a valid file'.format(self.fullpath))
 
     @classmethod
-    def from_example(cls, example, version=None):
+    def from_example(cls, example, **kwargs):
         ''' Instantiates a file from an example filepath'''
 
         path = pathlib.Path(os.path.expandvars('$SAS_BASE_DIR')) / example
         # if not path.is_file():
         #     raise ValueError(f'Example provided does seem to exist!  Check again.')
-        return cls(path, version=version)
+        return cls(path, **kwargs)
+
+    @classmethod
+    def from_path(cls, path_name, example=None, **kwargs):
+
+        if example:
+            path = pathlib.Path(os.path.expandvars('$SAS_BASE_DIR')) / example
+            version = kwargs.get('version', None)
+            cls.path.replant_tree(str(version) if version else None)
+
+            args = cls.path.extract(path_name, path)
+            kwargs.update(args)
+            breakpoint()
+
+        return cls(path_name, **kwargs)
 
     def compute_changelog(self, otherfile=None):
 
@@ -110,7 +126,7 @@ class FileObject(BaseObject):
 
         if not self._changes:
             name = str(self.fullpath)
-            self._changes = compute_change(name, otherfile, change='fits')
+            self._changes = compute_diff(name, otherfile, change='fits')
 
         return self._changes
 

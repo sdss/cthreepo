@@ -7,22 +7,23 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 12:52:32 pm
+# Last Modified: Thursday, 2nd May 2019 7:15:32 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
 
 import re
 import six
+import os
 
 from marshmallow import Schema, fields, post_load, validate
-from cthreepo.core.fits import Fits
+from cthreepo.core.fits import Fits, BaseObject
 from cthreepo.utils.general import compute_changelog
 from cthreepo.core.structs import FuzzyList
 from cthreepo.utils.yaml import read_yaml, expand_yaml
 from cthreepo.utils.datamodel import find_datamodels
 from cthreepo.core.models import BaseSchema, create_field, _get_attr, ObjectField
-from cthreepo.misc import log 
+from cthreepo.misc import log
 
 # core classes
 
@@ -55,17 +56,28 @@ class BaseProduct(object):
             files.append(inst)
         return ObjectList(files)
 
-    def compute_changelog(self):
+    def compute_changelog(self, versions=None, refresh=None):
+
+        # force a refresh
+        if refresh:
+            self._changes = None
+
         if not self._changes:
             # get expanded products
             if not self._expanded:
                 self._expanded = self.expand_product()
-            
-            # only get changes for files that exist
-            exists = [i for i in self._expanded if i.file_exists]
-            rev_list = list(reversed(exists))
 
-            if len(exists) != len(self._expanded):
+            # limit to only the specified versions
+            if versions:
+                assert all([i in self._expanded for i in versions]), 'All versions must be available in the product list'
+                verlist = [self._expanded[i] for i in versions]
+            else:
+                verlist = self._expanded
+
+            # only get changes for files that exist
+            exists = [i for i in verlist if i.file_exists]
+            rev_list = sorted(exists, key=lambda t: str(t.version), reverse=True)
+            if len(exists) != len(verlist):
                 log.warning('One or more product files do not exist. Changelog will be incomplete')
             
             self._changes = compute_changelog(rev_list)
@@ -74,6 +86,7 @@ class BaseProduct(object):
     def _create_datatype(self, version, example_ver=None):
         ''' create a datatype object '''
 
+        # update the attributes dictionary
         attrs = {a: getattr(self, a, None) for a in self._base_attrs if hasattr(self, a)}
         attrs.update({'version': version, '_parent': self})
         if hasattr(self, 'changelog') and str(version) in self.changelog:
@@ -81,22 +94,36 @@ class BaseProduct(object):
 
         # need to assert version is a string or class instance; does not work yet
         assert isinstance(version, (six.string_types, object)
-                        ), 'version can only be a string or an instance object'
-        example = attrs.get('example', None)
+                         ), 'version can only be a string or an instance object'
+        example = attrs.pop('example', None)
         if example:
-            if example_ver:
-                attrs['example'] = _replace_version(example, example_ver, version)
+            #if 'sdss_access' in attrs:
+                #filepath = os.path.join(os.path.getenv("SAS_BASE_DIR"), example)
+                #args = p.extract('mangacube', filepath)
+            #elif example_ver:
+            example = _replace_version(example, example_ver, version)
 
+        # handle some keywords
+        attrs['path_name'] = attrs.pop('sdss_access', None)
+        attrs['parent'] = self
+        attrs['product'] = self.name
+        
+        # generate the datatype
         datatype = attrs.pop('datatype')
         if datatype == 'fits':
-            inst = Fits.from_example(attrs['example'], version=version)
+            if example and not attrs['path_name']:
+                inst = Fits.from_example(example, **attrs)
+            elif attrs['path_name']:
+                name = attrs.pop('path_name')
+                inst = Fits.from_path(name, example=example, **attrs)
         else:
-            obj = type('Object', (object,), attrs)
+            # obj = type('Object', (object,), attrs)
 
-            def r(self):
-                return f'<Object(name={self.name},version={self.version})>'
-            obj.__repr__ = r
-            inst = obj()
+            # def r(self):
+            #     return f'<Object(name={self.name},version={self.version})>'
+            # obj.__repr__ = r
+            # inst = obj()
+            inst = BaseObject(product=self.name, version=version)
 
         return inst
     
