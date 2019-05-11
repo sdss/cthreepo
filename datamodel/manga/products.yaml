@@ -9,7 +9,8 @@ cube:
     three-dimensional arrays in which the first and second dimensions are spatial (with regular 0.5 
     arcsec square spaxels) and the third dimension represents wavelength.
   datatype: fits
-  sdss_access: mangacube
+  path_name: mangacube
+  path_kwargs: {plate: 8485, ifu: 1901, drpver: v2_4_3, wave: LOG}
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGCUBE.fits.gz
   versions: &ver [MPL1, MPL2, MPL3, MPL4, DR13, MPL5, DR14, MPL6, MPL7, DR15, MPL8]
   # this is example of changelog utilizing the defaults dict
@@ -28,8 +29,9 @@ rss:
   name: RSS
   description: this is a manga rss file
   datatype: fits
-  sdss_access: mangarss
-  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
+  path_name: mangarss
+  path_kwargs: {plate: 8485, ifu: 1901, wave: LOG}
+ # example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
   versions: *ver
   # this is an example of an explicit changelog
   changelog:
@@ -61,7 +63,7 @@ image:
   name: Image
   description: this is a manga optical image
   datatype: image
-  sdss_access: mangaimage
+  path_name: mangaimage
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/images/1901.png
   versions: [MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
 
@@ -74,7 +76,7 @@ maps:
   # this is an example of a changelog where everything changes 
   changelog: &dapchange
     MPL4:
-      sdss_access: mangamap
+      path_name: mangamap
       bintypes: [NONE, RADIAL, STON]
       templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
       default_bintype: NONE
@@ -82,7 +84,7 @@ maps:
       example: mangawork/manga/spectro/analysis/v1_5_1/1.1.1/8485/1901/manga-8485-1901-LOGMAPS_BIN-NONE-013.fits
     MPL5: &mpl5
       example: mangawork/manga/spectro/analysis/v2_0_1/2.0.2/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
-      sdss_access: mangadap5
+      path_name: mangadap5
       bintypes: [SPX, VOR10, ALL, NRE]
       templates: [GAU-MILESHC]
       default_bintype: SPX

@@ -7,12 +7,13 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Thursday, 2nd May 2019 7:26:17 pm
+# Last Modified: Saturday, 11th May 2019 2:57:17 pm
 # Modified By: Brian Cherinka
 
 
 from __future__ import print_function, division, absolute_import
 import os
+import re
 import six
 import pathlib
 from io import StringIO
@@ -94,33 +95,58 @@ class FileObject(BaseObject):
         # if not self.file_exists:
         #     raise NameError('{0} not a valid file'.format(self.fullpath))
 
+    @staticmethod
+    def _get_example(example, replace=None):
+        ''' set the example '''
+        ex_regex = r'^(\w+work|dr\d{1,2})'
+        assert re.match(ex_regex,
+                        example), 'example must start work xxxwork or drxx'
+        if replace and 'dr' in str(replace).lower():
+            example = re.sub(ex_regex, str(replace).lower(), example)
+        path = pathlib.Path(os.path.expandvars('$SAS_BASE_DIR')) / example
+        return path
+
     @classmethod
     def from_example(cls, example, **kwargs):
         ''' Instantiates a file from an example filepath'''
 
-        path = pathlib.Path(os.path.expandvars('$SAS_BASE_DIR')) / example
+        version = kwargs.get('version', None)
+        path = cls._get_example(example, replace=version)
         # if not path.is_file():
         #     raise ValueError(f'Example provided does seem to exist!  Check again.')
         return cls(path, **kwargs)
 
     @classmethod
     def from_path(cls, path_name, example=None, **kwargs):
+        ''' Instantiates a file from an sdss_access path definition '''
+        path_kwargs = kwargs.pop('path_kwargs', None)
+        version = kwargs.get('version', None)
+        cls.path.replant_tree(str(version) if version else None)
 
         if example:
-            path = pathlib.Path(os.path.expandvars('$SAS_BASE_DIR')) / example
-            version = kwargs.get('version', None)
-            cls.path.replant_tree(str(version) if version else None)
-
+            path = cls._get_example(example, replace=version)
             args = cls.path.extract(path_name, path)
             kwargs.update(args)
-            breakpoint()
-
+        elif path_kwargs:
+            # to handle sdss_access path kwargs and versioning issues
+            # TODO cleanup version handling
+            args = path_kwargs.copy()
+            missing = set(cls.path.lookup_keys(path_name)) - set(args.keys())
+            if version:
+                if isinstance(version, six.string_types):
+                    version_kwarg = dict.fromkeys(missing, version)
+                else:
+                    version_kwarg = version.__dict__
+                args.update(version_kwarg)
+            kwargs.update(args)
+        else:
+            raise ValueError('no example string or sdss_access path kwargs found.  Cannot construct object.')
         return cls(path_name, **kwargs)
 
     def compute_changelog(self, otherfile=None):
 
         assert otherfile is not None, ('You must specify another file to view '
-                                       'the changlog with this file.  Otherise '
+                                       'the changlog with this file.  Otherwise '
                                        'use the changlog from the datamodel to '
                                        'see the full changelog')
 

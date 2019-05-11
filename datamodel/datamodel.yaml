@@ -30,9 +30,14 @@ schema: &dm
     kind: list(string)
     required: True
     group: Default
-  sdss_access:
+  path_name:
     name: SDSS Access Name
     kind: string
+    required: False
+    group: Default
+  path_kwargs:
+    name: SDSS Access Keyword Arguments
+    kind: dict
     required: False
     group: Default
   public:

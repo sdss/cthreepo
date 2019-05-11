@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Thursday, 2nd May 2019 7:15:32 pm
+# Last Modified: Saturday, 11th May 2019 2:08:21 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -70,13 +70,13 @@ class BaseProduct(object):
             # limit to only the specified versions
             if versions:
                 assert all([i in self._expanded for i in versions]), 'All versions must be available in the product list'
-                verlist = [self._expanded[i] for i in versions]
+                verlist = [i for i in self._expanded if str(i.version) in versions]
             else:
                 verlist = self._expanded
 
             # only get changes for files that exist
             exists = [i for i in verlist if i.file_exists]
-            rev_list = sorted(exists, key=lambda t: str(t.version), reverse=True)
+            rev_list = list(reversed(exists))
             if len(exists) != len(verlist):
                 log.warning('One or more product files do not exist. Changelog will be incomplete')
             
@@ -104,7 +104,7 @@ class BaseProduct(object):
             example = _replace_version(example, example_ver, version)
 
         # handle some keywords
-        attrs['path_name'] = attrs.pop('sdss_access', None)
+        attrs['path_name'] = attrs.get('path_name', None)
         attrs['parent'] = self
         attrs['product'] = self.name
         
