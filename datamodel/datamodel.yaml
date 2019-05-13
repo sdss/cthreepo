@@ -9,6 +9,11 @@ schema: &dm
     kind: string
     required: True
     group: Default
+  short:
+    name: Short Description
+    kind: string
+    required: True
+    group: Default
   description:
     name: Description
     kind: string

@@ -14,19 +14,3 @@ Added
 ^^^^^
 * A thing we added.
 
-.. x.y.z (unreleased)
-.. ------------------
-..
-.. A short description
-..
-.. Added
-.. ^^^^^
-.. * TBD
-..
-.. Changed
-.. ^^^^^^^
-.. * TBD
-..
-.. Fixed
-.. ^^^^^
-.. * TBD

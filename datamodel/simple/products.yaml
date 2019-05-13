@@ -1,6 +1,7 @@
 # simple catalog 
 catalog: 
   name: Catalog
+  short: a simple catalog
   description: this is a catalog
   datatype: catalog
   example: simple/catalogs/catalogA_v3.0.csv

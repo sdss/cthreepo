@@ -1,15 +1,15 @@
 
 .. _cube:
 
-.. fits:: cthreepo.datamodels.manga.base:LogCube
+.. fits:: cthreepo.datamodel.manga:cube
     :name: DRP LogCube
     :change:
 
 .. _rss:
 
-.. fits:: cthreepo.datamodels.manga.base:LogRSS
+.. fits:: cthreepo.datamodel.manga:rss
     :name: DRP LogRSS
 
 
-.. fits:: cthreepo.datamodels.manga.base:Maps
+.. fits:: cthreepo.datamodel.manga:maps
     :name: DAP MAPS

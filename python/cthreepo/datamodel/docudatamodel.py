@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 10:40:25 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Sunday, 13th January 2019 4:16:19 pm
+# Last Modified: Monday, 13th May 2019 6:00:35 pm
 # Modified By: Brian Cherinka
 
 
@@ -18,6 +18,7 @@ from docutils.parsers.rst import directives
 from docutils import statemachine
 import traceback
 import importlib
+import six
 
 
 def _indent(text, level=1):
@@ -198,21 +199,27 @@ def _format_table(ext):
         yield _indent(f'  - {col.format}')
 
 
-def _format_version(inst):
+def _format_version(obj):
     ''' Format the versions of the FITS '''
 
-    if not hasattr(inst, 'versions'):
+    if not hasattr(obj, 'versions'):
         yield ''
         return
     yield ''
     yield 'Available Versions'
     yield ''
-    if isinstance(inst.versions, list):
-        for val in inst.versions:
-            yield f'* {val}'
-    elif isinstance(inst.versions, dict):
-        for key, val in inst.versions.items():
-            yield f'* {key}: {val}'
+    if isinstance(obj.versions, list):
+        for val in obj.versions:
+            if isinstance(val, six.string_types):
+                yield f'* {val}'
+            else:
+                info = tuple(i for k, i in val.__dict__.items()
+                               if not k.startswith('_') and i != str(val))
+                yield f'* {val}: {info}'
+    # # old code
+    # elif isinstance(obj.versions, dict):
+    #     for key, val in obj.versions.items():
+    #         yield f'* {key}: {val}'
 
 
 def _format_changelog(inst):
@@ -251,10 +258,13 @@ def load_module(module_path, error=None):
 
         raise error(err_msg)
 
-    if not hasattr(mod, attr_name):
+    if not hasattr(mod.dm.products, attr_name):
         raise error('Module "{0}" has no attribute "{1}"'.format(module_name, attr_name))
 
-    return getattr(mod, attr_name)
+    # old return for cthree.datamodels.manga.base: LogCube
+    #return getattr(mod, attr_name)
+    # new return
+    return mod.dm.products[attr_name]
 
 
 class FitsDirective(rst.Directive):
@@ -279,7 +289,7 @@ class FitsDirective(rst.Directive):
         # get the directive argument
         fileclass = self.arguments[0]
         # load the module or object
-        fits_obj = load_module(fileclass)
+        product_obj = load_module(fileclass)
         # define the basic FITS TOC tree
         base_name = self.options['name'].lower().strip().replace(' ', '_')
         toc = [('Basic Info', base_name + '_info'), ('Header', base_name + '_header'), 
@@ -290,10 +300,10 @@ class FitsDirective(rst.Directive):
             toc.append(('ChangeLog', base_name + '_changelog'))
 
         # make the initial FITS section
-        section = self._make_section_main(fits_obj, items=toc, tag=base_name)
+        section = self._make_section_main(product_obj, items=toc, tag=base_name)
         # create the individual FITS sections
-        for item in toc:
-            section = self._make_section(fits_obj, node=section, title=item[0], refid=item[1])
+        # for item in toc:
+        #     section = self._make_section(product_obj, node=section, title=item[0], refid=item[1])
 
         return [section]
 
@@ -302,11 +312,10 @@ class FitsDirective(rst.Directive):
         filename = self.options['name']
         title = nodes.title(text=filename)
 
-        inst = obj()
         section = nodes.section('', title, ids=[tag], names=[tag])
 
         # add docstring
-        docs = [nodes.paragraph(text=i) for i in inst.__doc__.split('\n')]
+        docs = [nodes.paragraph(text=i) for i in obj.__doc__.split('\n')]
         section += nodes.line_block('', *docs)
 
         # add the main toc
@@ -317,7 +326,7 @@ class FitsDirective(rst.Directive):
         self.state.nested_parse(result, 0, section)
 
         # add any version information
-        lines = _format_version(inst)
+        lines = _format_version(obj)
         result = statemachine.ViewList()
         for line in lines:
             result.append(line, tag)

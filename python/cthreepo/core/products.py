@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Monday, 13th May 2019 4:05:53 pm
+# Last Modified: Monday, 13th May 2019 5:47:00 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -188,8 +188,8 @@ def _replace_version(example, oldver, newver):
 
 def create_product(data):
     ''' create a product class '''
-    # define custom repr
 
+    # define custom repr
     def new_rep(self):
         reprstr = f'<Product({self._repr_fields})>'
         return reprstr
@@ -209,6 +209,8 @@ def create_product(data):
         # create a string of the repr fields
         name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
         self._repr_fields = f'{name}' + repr_fields
+        # set the docstring
+        self.__doc__ = self.short + '\n\n' + self.description
 
     # create the new class and add the new methods
     obj = type("Product", (BaseProduct,), {})

@@ -1,6 +1,7 @@
 # manga cube
 cube:
   name: CUBE
+  short: A MaNGA DataCube
   description: |
     This is 3d spectral datacube, with two spatial dimensions and one spectral dimension.
     
@@ -27,6 +28,7 @@ cube:
 # manga rss
 rss:
   name: RSS
+  short: A MaNGA Row-Stacked Spectra
   description: this is a manga rss file
   datatype: fits
   path_name: mangarss
@@ -61,15 +63,20 @@ rss:
 # manga image
 image: 
   name: Image
-  description: this is a manga optical image
+  short: MaNGA optical image
+  description: this is a manga optical PNG image based on SDSS gri cutout service
   datatype: image
   path_name: mangaimage
   example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/images/1901.png
   versions: [MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+  changelog:
+    MPL8:
+      example: mangawork/manga/spectro/redux/v2_4_3/8485/images/1901.png
 
 # manga maps
 maps:
   name: MAPS
+  short: A MaNGA DAP maps object
   description: this is a manga dap map file
   datatype: fits
   versions: [MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
@@ -77,11 +84,12 @@ maps:
   changelog: &dapchange
     MPL4:
       path_name: mangamap
+      path_kwargs: {plate: 8485, ifu: 1901, mode: MAPS, n: 13, bintype: NONE}
       bintypes: [NONE, RADIAL, STON]
       templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
       default_bintype: NONE
       default_template: MIUSCAT-THIN
-      example: mangawork/manga/spectro/analysis/v1_5_1/1.1.1/full/8485/1901/manga-8485-1901-LOGCUBE_MAPS-NONE-013.fits.gz
+      #example: mangawork/manga/spectro/analysis/v1_5_1/1.1.1/full/8485/1901/manga-8485-1901-LOGCUBE_MAPS-NONE-013.fits.gz
     MPL5: &mpl5
       example: mangawork/manga/spectro/analysis/v2_0_1/2.0.2/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
       path_name: mangadap
@@ -109,6 +117,7 @@ maps:
 # manga modelcube
 modelcube:
   name: MODELCUBE
+  short: A MaNGA DAP modelcube object
   description: this is a manga dap modelcube file
   datatype: fits
   versions: [MPL5, MPL6, MPL7, DR15, MPL8]

@@ -22,7 +22,7 @@ import os
 
 from cthreepo import __version__
 from pkg_resources import parse_version
-sys.path.insert(0, os.path.abspath('../../python/cthreepo/datamodels/'))
+sys.path.insert(0, os.path.abspath('../../python/cthreepo/datamodel/'))
 
 
 # -- General configuration ------------------------------------------------
