@@ -28,6 +28,7 @@ class DataModel(object):
         return super(DataModel, cls).__new__(cls, *args, **kwargs)
 
     def __init__(self):
+        self._classes = []
         self.models = self._generate_models()
         self.products = generate_products(self._products_file, models=self.models)
 
@@ -49,8 +50,9 @@ class DataModel(object):
         fd = {}
         for file in self._model_files:
             data = read_yaml(file)
-            #setattr(self, file.stem, generate_models(data))
-            fd[file.stem] = generate_models(data)
+            models = generate_models(data)
+            self._classes.append(models[0].__class__)
+            fd[file.stem] = models
         return FuzzyDict(fd)
 
 
