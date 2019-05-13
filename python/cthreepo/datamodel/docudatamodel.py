@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 10:40:25 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Monday, 13th May 2019 6:00:35 pm
+# Last Modified: Monday, 13th May 2019 7:04:11 pm
 # Modified By: Brian Cherinka
 
 
@@ -215,6 +215,7 @@ def _format_version(obj):
             else:
                 info = tuple(i for k, i in val.__dict__.items()
                                if not k.startswith('_') and i != str(val))
+                info = ', '.join(map(str, info))
                 yield f'* {val}: {info}'
     # # old code
     # elif isinstance(obj.versions, dict):
@@ -302,8 +303,8 @@ class FitsDirective(rst.Directive):
         # make the initial FITS section
         section = self._make_section_main(product_obj, items=toc, tag=base_name)
         # create the individual FITS sections
-        # for item in toc:
-        #     section = self._make_section(product_obj, node=section, title=item[0], refid=item[1])
+        for item in toc:
+            section = self._make_section(product_obj, node=section, title=item[0], refid=item[1])
 
         return [section]
 
@@ -345,17 +346,17 @@ class FitsDirective(rst.Directive):
         else:
             node = section
 
-        # instantiate the fits object
-        inst = obj()
+        # # instantiate the fits object
+        # inst = obj()
         lines = None
-        if 'info' in refid:
-            lines = _format_fits_info(inst)
-        elif 'header' in refid:
-            lines = _format_fits_header(inst)
-        elif 'table' in refid:
-            lines = _format_fits_tables(inst)
-        elif 'changelog' in refid:
-            lines = _format_changelog(inst)
+        # if 'info' in refid:
+        #     lines = _format_fits_info(inst)
+        # elif 'header' in refid:
+        #     lines = _format_fits_header(inst)
+        # elif 'table' in refid:
+        #     lines = _format_fits_tables(inst)
+        # elif 'changelog' in refid:
+        #     lines = _format_changelog(inst)
 
         if lines:
             node = self._parse_format(lines, refid, node)
@@ -382,4 +383,4 @@ class FitsDirective(rst.Directive):
 
 def setup(app):
     app.add_directive('fits', FitsDirective)
-    app.add_directive('datamodel', DataModelDirective)
+    #app.add_directive('datamodel', DataModelDirective)

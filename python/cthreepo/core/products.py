@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Monday, 13th May 2019 5:47:00 pm
+# Last Modified: Monday, 13th May 2019 7:01:50 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -210,7 +210,7 @@ def create_product(data):
         name = _get_attr(self, 'name') or _get_attr(self, 'release') or ''
         self._repr_fields = f'{name}' + repr_fields
         # set the docstring
-        self.__doc__ = self.short + '\n\n' + self.description
+        self.__doc__ = (self.short + '\n\n' + self.description).replace(' \n', '\n')
 
     # create the new class and add the new methods
     obj = type("Product", (BaseProduct,), {})

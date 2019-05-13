@@ -191,10 +191,12 @@ class MyLogger(Logger):
         mod_name = None
         mod_path, ext = os.path.splitext(mod_path)
         for name, mod in sys.modules.items():
-            path = os.path.splitext(getattr(mod, '__file__', ''))[0]
-            if path == mod_path:
-                mod_name = mod.__name__
-                break
+            attr = getattr(mod, '__file__', '')
+            if attr:
+                path = os.path.splitext(attr)[0]
+                if path == mod_path:
+                    mod_name = mod.__name__
+                    break
 
         if mod_name is not None:
             self.warning(message, extra={'origin': mod_name})

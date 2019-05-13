@@ -5,4 +5,3 @@ Changelog
 =========
 
 .. include:: ../../CHANGELOG.rst
-

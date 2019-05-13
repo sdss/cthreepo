@@ -9,7 +9,7 @@ cthreepo Reference
 Main
 ----
 
-.. automodule:: cthreepo.datamodel.manga.base
+.. automodule:: cthreepo.datamodel.manga
    :members:
    :undoc-members:
    :show-inheritance:
