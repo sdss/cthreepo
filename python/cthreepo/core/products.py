@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Saturday, 11th May 2019 2:08:21 pm
+# Last Modified: Monday, 13th May 2019 4:05:53 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -97,17 +97,15 @@ class BaseProduct(object):
                          ), 'version can only be a string or an instance object'
         example = attrs.pop('example', None)
         if example:
-            #if 'sdss_access' in attrs:
-                #filepath = os.path.join(os.path.getenv("SAS_BASE_DIR"), example)
-                #args = p.extract('mangacube', filepath)
-            #elif example_ver:
+            if not example_ver:
+                example_ver = _find_in_example(example, self.versions)
             example = _replace_version(example, example_ver, version)
 
         # handle some keywords
         attrs['path_name'] = attrs.get('path_name', None)
         attrs['parent'] = self
         attrs['product'] = self.name
-        
+
         # generate the datatype
         datatype = attrs.pop('datatype')
         if datatype == 'fits':
@@ -117,12 +115,6 @@ class BaseProduct(object):
                 name = attrs.pop('path_name')
                 inst = Fits.from_path(name, example=example, **attrs)
         else:
-            # obj = type('Object', (object,), attrs)
-
-            # def r(self):
-            #     return f'<Object(name={self.name},version={self.version})>'
-            # obj.__repr__ = r
-            # inst = obj()
             inst = BaseObject(product=self.name, version=version)
 
         return inst

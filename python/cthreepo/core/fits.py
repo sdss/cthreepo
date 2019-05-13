@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Saturday, 11th May 2019 2:57:17 pm
+# Last Modified: Monday, 13th May 2019 4:02:46 pm
 # Modified By: Brian Cherinka
 
 
@@ -122,14 +122,14 @@ class FileObject(BaseObject):
         path_kwargs = kwargs.pop('path_kwargs', None)
         version = kwargs.get('version', None)
         cls.path.replant_tree(str(version) if version else None)
-
+        
         if example:
             path = cls._get_example(example, replace=version)
             args = cls.path.extract(path_name, path)
             kwargs.update(args)
         elif path_kwargs:
             # to handle sdss_access path kwargs and versioning issues
-            # TODO cleanup version handling
+            # TODO cleanup version handling to better handle path_kwarg inputs
             args = path_kwargs.copy()
             missing = set(cls.path.lookup_keys(path_name)) - set(args.keys())
             if version:
@@ -141,6 +141,7 @@ class FileObject(BaseObject):
             kwargs.update(args)
         else:
             raise ValueError('no example string or sdss_access path kwargs found.  Cannot construct object.')
+
         return cls(path_name, **kwargs)
 
     def compute_changelog(self, otherfile=None):

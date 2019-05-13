@@ -81,10 +81,10 @@ maps:
       templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
       default_bintype: NONE
       default_template: MIUSCAT-THIN
-      example: mangawork/manga/spectro/analysis/v1_5_1/1.1.1/8485/1901/manga-8485-1901-LOGMAPS_BIN-NONE-013.fits
+      example: mangawork/manga/spectro/analysis/v1_5_1/1.1.1/full/8485/1901/manga-8485-1901-LOGCUBE_MAPS-NONE-013.fits.gz
     MPL5: &mpl5
       example: mangawork/manga/spectro/analysis/v2_0_1/2.0.2/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
-      path_name: mangadap5
+      path_name: mangadap
       bintypes: [SPX, VOR10, ALL, NRE]
       templates: [GAU-MILESHC]
       default_bintype: SPX
