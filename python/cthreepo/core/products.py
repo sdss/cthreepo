@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Tuesday, 14th May 2019 4:36:20 pm
+# Last Modified: Tuesday, 14th May 2019 4:54:03 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -102,9 +102,9 @@ class BaseProduct(object):
             example = _replace_version(example, example_ver, version)
 
         # expansion scenarios - attributes needed
-        #versions + example
-        #versions + path_name + example
-        #versions + path_name + path_kwargs
+        # versions + example
+        # versions + path_name + example
+        # versions + path_name + path_kwargs
 
         # handle some keywords
         attrs['path_name'] = attrs.get('path_name', None)

@@ -2,7 +2,7 @@ name: manga
 description: list of manga specific datamodel attributes
 defaults: &defaults
   required: False
-  group: Default
+  group: MaNGA
 schema:
   bintypes:
     name: Bintypes
