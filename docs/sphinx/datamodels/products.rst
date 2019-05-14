@@ -21,8 +21,3 @@ This page highlights examples of documenting data products.
 
 .. fits:: cthreepo.datamodel.manga:maps
     :name: DAP MAPS
-
-.. _drpall: 
-
-.. fits:: cthreepo.datamodel.manga:drpall
-    :name: DRPall 
