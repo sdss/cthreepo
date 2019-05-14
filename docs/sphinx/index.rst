@@ -16,6 +16,9 @@ A description of the package can go here.
 
 * :ref:`What's new in cthreepo? <changelog>`
 * :ref:`Introduction to cthreepo <intro>`
+* :ref:`DataModels <datamodels>`
+* :ref:`Example Products <products>`
+
 
 Reference
 ---------
@@ -25,7 +28,6 @@ Reference
 
    api
 
-   datamodels/index
 
 
 Indices and tables

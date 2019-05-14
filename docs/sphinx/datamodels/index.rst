@@ -1,17 +1,12 @@
 
-.. _cube:
+.. _datamodels:
 
-.. fits:: cthreepo.datamodel.manga:cube
-    :name: DRP Cube
-    :change:
+DataModels
+----------
 
-.. _rss:
+This page shows an example of documenting datamodels.  
 
-.. fits:: cthreepo.datamodel.manga:rss
-    :name: DRP RSS
+.. _mangadm: 
 
-.. _maps:
-
-.. fits:: cthreepo.datamodel.manga:maps
-    :name: DAP MAPS
-
+.. datamodel:: cthreepo.datamodel.manga:dm
+    :name: MaNGA DataModel
