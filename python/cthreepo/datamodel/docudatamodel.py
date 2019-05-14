@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 10:40:25 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Monday, 13th May 2019 7:04:11 pm
+# Last Modified: Monday, 13th May 2019 9:43:06 pm
 # Modified By: Brian Cherinka
 
 
@@ -217,18 +217,14 @@ def _format_version(obj):
                                if not k.startswith('_') and i != str(val))
                 info = ', '.join(map(str, info))
                 yield f'* {val}: {info}'
-    # # old code
-    # elif isinstance(obj.versions, dict):
-    #     for key, val in obj.versions.items():
-    #         yield f'* {key}: {val}'
 
 
-def _format_changelog(inst):
+def _format_changelog(log):
     ''' Format a changlog for a FITS '''
 
-    cl = inst.compute_changelog(input='mangacube', plate=8485, ifu=1901, drpver='v2_0_1', split=True)
-    for line in cl:
-        yield line
+    report = log.generate_report(split=True)
+    for line in report:
+        yield f'**{line}**' if 'Version' in line else line
         yield ''
 
 
@@ -348,15 +344,19 @@ class FitsDirective(rst.Directive):
 
         # # instantiate the fits object
         # inst = obj()
+        products = obj.expand_product()
+        # get most recent
+        inst = products[-1]
         lines = None
-        # if 'info' in refid:
-        #     lines = _format_fits_info(inst)
-        # elif 'header' in refid:
-        #     lines = _format_fits_header(inst)
-        # elif 'table' in refid:
-        #     lines = _format_fits_tables(inst)
-        # elif 'changelog' in refid:
-        #     lines = _format_changelog(inst)
+        if 'info' in refid:
+            lines = _format_fits_info(inst)
+        elif 'header' in refid:
+            lines = _format_fits_header(inst)
+        elif 'table' in refid:
+            lines = _format_fits_tables(inst)
+        elif 'changelog' in refid:
+            log = obj.compute_changelog()
+            lines = _format_changelog(log)
 
         if lines:
             node = self._parse_format(lines, refid, node)

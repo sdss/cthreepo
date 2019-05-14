@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 2:12:03 pm
+# Last Modified: Monday, 13th May 2019 9:47:19 pm
 # Modified By: Brian Cherinka
 
 
@@ -36,6 +36,7 @@ class ChangeLog(FuzzyList):
     ''' Class that holds the change log for a FITS file type
     
     TODO - improve the repr and Fuzzylist
+    TODO - fix the dir to contain everything
 
     '''
 
@@ -44,6 +45,21 @@ class ChangeLog(FuzzyList):
 
     def mapper(self, item):
         return 'diff_' + '_'.join(item.versions).lower()
+
+    def generate_report(self, split=None, insert=True):
+        ''' generate a string report '''
+        full_report = [] if split else ''
+        for item in self:
+            lines = item.report(split=split)
+            if split:
+                if insert:
+                    full_report.append('---------------------')
+                full_report.extend(lines)
+            else:
+                if insert:
+                    full_report += '\n---------------------\n'
+                full_report += lines
+        return full_report
 
 
 class FileDiff(abc.ABC, object):
