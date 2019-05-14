@@ -124,13 +124,3 @@ modelcube:
   changelog:
     <<: *dapchange
     MPL4: null
-
-# manga drpall file
-drpall:
-  name: DRPALL
-  short: The MaNGA DRPall file
-  description: This is MaNGA file containing metadata for every reduction target
-  datatype: fits
-  versions: *ver
-  path_name: drpall
-  example: mangawork/manga/spectro/redux/v2_4_3/drpall-v2_4_3.fits
