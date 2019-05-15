@@ -79,6 +79,11 @@ class DataModel(object):
                 continue
             prods = []
             for prod in self.products:
+                # reset changelog and expanded products
+                if prod._changes is not None or prod._expanded is not None:
+                    prod._changes = None
+                    prod._expanded = None
+                # replicate the product
                 if k in prod.versions:
                     newprod = copy.deepcopy(prod)
                     newprod.versions = [prod.versions[prod.versions.index(k)]]

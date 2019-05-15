@@ -7,7 +7,7 @@
 # Created: Monday, 18th March 2019 9:40:38 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Monday, 18th March 2019 9:40:47 am
+# Last Modified: Wednesday, 15th May 2019 2:42:00 pm
 # Modified By: Brian Cherinka
 
 
@@ -15,6 +15,7 @@ from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 
 import six
+import inspect
 
 from fuzzywuzzy import fuzz as fuzz_fuzz
 from fuzzywuzzy import process as fuzz_proc
@@ -141,8 +142,14 @@ class FuzzyList(list):
         return super(FuzzyList, self).__getattribute__(value)
 
     def __dir__(self):
-
-        return [self.mapper(item) for item in self]
+        ''' override the dir to only show new methods and items in the list '''
+        # get all original members of the FuzzyList
+        class_members = set(list(zip(*inspect.getmembers(self.__class__)))[0])
+        # subtract out members from original list object
+        members = list(set(class_members) - set(dir(list)))
+        # get parameters in list
+        params = [self.mapper(item) for item in self]
+        return members + params
 
 
 class OrderedDefaultDict(FuzzyDict):
