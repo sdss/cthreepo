@@ -11,6 +11,8 @@
 from __future__ import print_function, division, absolute_import
 import os
 import pathlib
+import copy
+from itertools import groupby
 from cthreepo.core.structs import FuzzyDict, FuzzyList
 from cthreepo.core.models import generate_models
 from cthreepo.core.products import generate_products
@@ -38,6 +40,7 @@ class DataModel(object):
     @classmethod
     def _get_segment(cls):
         ''' get the datamodel segment '''
+        assert cls.survey is not None, 'survey must be specified in new DataModel'
         here = pathlib.Path(__file__).resolve()
         dm_idx = str(here).find('datamodel')
         segment = str(here)[dm_idx:].rsplit('/', 1)[0]
@@ -55,10 +58,71 @@ class DataModel(object):
             fd[file.stem] = models
         return FuzzyDict(fd)
 
+    def _get_all_versions(self):
+        ''' get all versions in this datamodel '''
+        if 'versions' in self.models:
+            allversions = self.models['versions']
+        else:
+            verdict = {}
+            for prod in self.products:
+                verdict.update({v: [] for v in prod.versions})
+            allversions = list(verdict.keys())
+        return allversions
+
+    def organize_by_version(self, public=None):
+        ''' organize the datamodel by version number '''
+        versions = self._get_all_versions()
+        releases = []
+        pclass = type(self.products)
+        for k in versions:
+            if public and 'DR' not in str(k):
+                continue
+            prods = []
+            for prod in self.products:
+                if k in prod.versions:
+                    newprod = copy.deepcopy(prod)
+                    newprod.versions = [prod.versions[prod.versions.index(k)]]
+                    prods.append(newprod)
+            releases.append(VDataModel(k, survey=self.survey, products=pclass(prods)))
+        return VDataModelList(releases)
+
+
+class VDataModel(object):
+
+    def __init__(self, release, products=None, survey=None):
+        self.release = release
+        self.products = products
+        self.survey = survey
+
+    def __repr__(self):
+        return f'<{self.survey.title()}DataModel({self.release}, n_products={len(self.products)})'
+
+
+class VDataModelList(FuzzyList):
+    def mapper(self, item):
+        version = str(item.release).lower().replace('.', '_')
+        return version
+    
+    @property
+    def releases(self):
+        return [str(item.release) for item in self]
+
 
 class SDSSDataModelList(FuzzyList):
     def mapper(self, item):
         return str(item.survey.lower())
+    
+    def organize_by_release(self, public=None):
+        ''' organize the datamodel by release '''
+        # TODO - fix the return object 
+        # create the data
+        data = []
+        for item in self:
+            data += item.organize_by_version(public=public)
+        data = sorted(data, key=lambda x: str(x.release))
+
+        releases = {k: list(g) for k, g in groupby(data, key=lambda x: str(x.release))}
+        return releases
 
 
 from .manga import dm as mdm

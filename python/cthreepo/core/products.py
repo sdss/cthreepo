@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Tuesday, 14th May 2019 4:54:03 pm
+# Last Modified: Wednesday, 15th May 2019 12:21:18 am
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -277,10 +277,13 @@ def create_product_schema(data, required=None, models=None):
 
 
 def get_versions(models, schema):
+    ''' Get a list of versions from a models schema '''
     if 'versions' in models:
         versions = [str(v) for v in models.versions]
     elif 'versions' in schema:
-        versions = schema['versions']
+        # this pulls the versions datamodel attribute dictionary; is this what we want?
+        #versions = schema['versions']
+        return None
     else:
         return None
     return versions
@@ -315,6 +318,14 @@ def generate_products(ymlfile, name=None, make_fuzzy=True, models=None):
     many = False if name else True
     objects = data.get(name, None) if name else data.values()
 
+    # check validation on changelog attribute
+    if 'changelog' in schema._declared_fields:
+        key = schema._declared_fields['changelog']
+        if not key.key_container.validators:
+            versions = list(objects)[0]['versions']
+            key.key_container = fields.String(validate=validate.OneOf(versions))
+            schema._declared_fields['changelog'] = key
+    
     # deserialize the object
     models = schema().load(objects, many=many)
 
