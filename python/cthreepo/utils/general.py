@@ -7,7 +7,7 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Monday, 13th May 2019 9:47:19 pm
+# Last Modified: Friday, 17th May 2019 1:16:34 pm
 # Modified By: Brian Cherinka
 
 
@@ -17,6 +17,14 @@ import abc
 from astropy.io import fits
 from cthreepo.core.structs import FuzzyList
 from cthreepo.misc import log
+import matplotlib
+
+
+def settex():
+    ''' Configure matplotlib settings to use full latex syntax '''
+    usetex = matplotlib.rcParams['text.usetex']
+    if not usetex:
+        matplotlib.rc('text', usetex=True)
 
 
 def _indent(s):
