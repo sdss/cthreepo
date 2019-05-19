@@ -16,7 +16,9 @@ Added
 * directory structure of yaml files as datamodel definitions
 * mirrored directory within pacakge to define programmatic datamodel
 * Product, Model, DataModel class definitions
+* Product file expansion and changelog creation
 * marshmallow schema creation for Products, Models for object validation
+* datamodel organization by version or product
 * sphinx rst documentation for programmatic datamodels
 * starter Fits and Datamodel Sphinx Directives
 
