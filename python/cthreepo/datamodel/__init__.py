@@ -10,6 +10,7 @@
 
 from __future__ import print_function, division, absolute_import
 import os
+import re
 import pathlib
 import copy
 from itertools import groupby
@@ -21,6 +22,7 @@ from cthreepo.utils.yaml import get_yaml_files, read_yaml
 
 class DataModel(object):
     survey = None
+    _mixed_models = {}
 
     def __new__(cls, *args, **kwargs):
         cls._segment = cls._get_segment()
@@ -49,11 +51,22 @@ class DataModel(object):
             segment = pathlib.Path(segment) / addon
         return str(segment)
 
+    # def _check_for_mixin(self):
+    #     ''' check if a mixin exists for model '''
+
     def _generate_models(self):
         fd = {}
+        mixin = None
+        assert isinstance(self._mixed_models, dict), 'mix_models must be a dict'
+        keys = '|'.join(self._mixed_models.keys()) if self._mixed_models else None
         for file in self._model_files:
+            # check for mixin model
+            if keys:
+                mixmatch = re.search(keys, str(file))
+                if mixmatch:
+                    mixin = self._mixed_models[mixmatch.group()]
             data = read_yaml(file)
-            models = generate_models(data)
+            models = generate_models(data, mixin=mixin)
             self._classes.append(models[0].__class__)
             fd[file.stem] = models
         return FuzzyDict(fd)

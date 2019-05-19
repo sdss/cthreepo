@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:04 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Friday, 12th April 2019 10:30:33 am
+# Last Modified: Sunday, 19th May 2019 4:31:26 pm
 # Modified By: Brian Cherinka
 
 
@@ -64,7 +64,7 @@ def _get_attr(obj, name):
         return None
 
 
-def create_class(data):
+def create_class(data, mixin=None):
     ''' creates a new datamodel object class '''
 
     # define custom repr
@@ -96,7 +96,8 @@ def create_class(data):
         self._repr_fields = f'{name}' + repr_fields
 
     # create the new class and add the new methods
-    obj = type(data['name'], (object,), {})
+    bases = (mixin, object,) if mixin else (object,)
+    obj = type(data['name'], bases, {})
     obj.__init__ = new_init
     obj.__repr__ = new_rep
     obj.__str__ = new_str
@@ -162,7 +163,7 @@ def create_field(data, key=None, required=None, nodefault=None):
     return field(*args, **params)
 
 
-def create_schema(data):
+def create_schema(data, mixin=None):
     ''' creates a new class for schema validation '''
     name = data['name']
     if 'attributes' in data:
@@ -172,7 +173,7 @@ def create_schema(data):
     else:
         attrs = {}
 
-    class_obj = create_class(data)
+    class_obj = create_class(data, mixin=mixin)
     attrs['_class'] = class_obj
 
     objSchema = type(name + 'Schema', (BaseSchema,), attrs)
@@ -180,9 +181,9 @@ def create_schema(data):
     return objSchema
 
 
-def generate_models(data, make_fuzzy=True):
+def generate_models(data, make_fuzzy=True, mixin=None):
     ''' generate a list of datamodel types '''
-    schema = create_schema(data['schema'])
+    schema = create_schema(data['schema'], mixin=mixin)
     models = schema().load(data['objects'], many=True)
     if make_fuzzy:
         models = FuzzyList(models)
