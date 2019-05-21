@@ -56,10 +56,10 @@ class DataModel(object):
 
     def _generate_models(self):
         fd = {}
-        mixin = None
         assert isinstance(self._mixed_models, dict), 'mix_models must be a dict'
         keys = '|'.join(self._mixed_models.keys()) if self._mixed_models else None
         for file in self._model_files:
+            mixin = None
             # check for mixin model
             if keys:
                 mixmatch = re.search(keys, str(file))

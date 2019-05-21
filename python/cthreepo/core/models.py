@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:04 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Sunday, 19th May 2019 4:31:26 pm
+# Last Modified: Tuesday, 21st May 2019 3:59:20 pm
 # Modified By: Brian Cherinka
 
 
@@ -105,7 +105,19 @@ def create_class(data, mixin=None):
 
 
 def parse_kind(value):
-    ''' parse the kind value '''
+    ''' parse the kind value into a kind and subkind
+
+    Parses the schema "kind" attribute into a kind and subkind if
+    kind contain paranetheses, i.e. kind(subkind).  For example,
+    list(objects) return kind=list, subkind=objects.
+    
+    Parameters:
+        value (str):
+            The type of field
+    
+    Returns:
+        A tuple of the field type and any sub-type
+    '''
     subkind = re.search(r'\((.+?)\)', value)
     if subkind:
         kind = value.split('(', 1)[0]
@@ -122,7 +134,21 @@ def parse_kind(value):
 
 
 def get_field(value, key=None):
-    ''' Get a Marshmallow Fields type '''
+    ''' Get a Marshmallow Fields type
+    
+    Using the model schema attribute "kind" parameter, determines the
+    appropriate marshmallow field type.  If the value is "Objects"
+    then it uses a custom ObjectField definition.     
+
+    Parameters:
+        value (str):
+            The kind of field to retrieve, e.g. string
+        key (str):
+            The name of the attribute for the field
+            
+    Returns:
+        a marshmallow field class
+    '''
     if hasattr(fields, value):
         field = fields.__getattribute__(value)
         return field
@@ -133,22 +159,38 @@ def get_field(value, key=None):
 
 
 def create_field(data, key=None, required=None, nodefault=None):
-    ''' creates a marshmallow.fields '''
+    ''' creates a marshmallow.fields object
+    
+    Parameters:
+        data (dict):
+            A values dictionary for a given model attribute
+        key (str):
+            The name of the attribute
+        required (bool):
+            If True, sets the field as a required one. Default is False.
+        nodefault (bool):
+            If True, turns off any defaults specified for fields.  Default is False.
 
+    Returns:
+        A marshmallow field instance to attach to a schema
+    '''
     # parse the kind of input
     kind = data['kind'].title()
     kind, subkind = parse_kind(kind)
-    # get the field
+    # get the marshmallow field
     field = get_field(kind)
 
-    # create params
+    # create a parameters dictionary to pass into the fields object
     params = {}
     params['required'] = data.get('required', False) if required is None else required
     if 'default' in data and not nodefault:
         params['missing'] = data.get('default', None)
         params['default'] = data.get('default', None)
 
-    # create any args for sub-fields
+    # set key to use the model indicated if use_model is set
+    key = data['use_model'] if 'use_model' in data else key
+
+    # create any arguments for sub-fields
     args = []
     if subkind:
         skinds = subkind.split(',')
@@ -160,31 +202,78 @@ def create_field(data, key=None, required=None, nodefault=None):
         elif kind == 'Tuple':
             args.append(subfields)
 
+    # instantiate the fields object with the relevant args and parameters
     return field(*args, **params)
 
 
 def create_schema(data, mixin=None):
-    ''' creates a new class for schema validation '''
+    ''' creates a new class for schema validation
+    
+    Constructs a marshmallow schema class object used to validate
+    the creation of new Python objects for this class.  Takes a
+    model "schema" dictionary and builds new Python classes to represent
+    the model Object and an Object Schema for purposes of validation.
+    See https://marshmallow.readthedocs.io/en/3.0/quickstart.html for a guide on
+    deserializing data using marshmallow schema validation.
+
+    Parameters:
+        data (dict):
+            The schema dictonary section of a yaml file
+        mixin (object):
+            A custom model class to mixin with base model
+    
+    Returns:
+        A marshmallow schema class object
+    '''
+    # create a dictionary of class attributes from the schema
     name = data['name']
     if 'attributes' in data:
         attrs = {}
+        # create marshmallow schema fields for each attribute
         for attr, values in data['attributes'].items():
             attrs[attr] = create_field(values, key=attr)
     else:
         attrs = {}
 
+    # create the base object class
     class_obj = create_class(data, mixin=mixin)
-    attrs['_class'] = class_obj
 
+    # add the object class to the schema attributes for accessibility
+    # create the new schema class object
+    attrs['_class'] = class_obj
     objSchema = type(name + 'Schema', (BaseSchema,), attrs)
+
+    # add the schema class instance to the object class for accessibility
     class_obj._schema = objSchema()
     return objSchema
 
 
 def generate_models(data, make_fuzzy=True, mixin=None):
-    ''' generate a list of datamodel types '''
+    ''' Generate a list of datamodel types
+    
+    Converts a models yaml file, e.g. manga/versions.yaml, into a list of Python instances.
+    A model Schema class is created using the "schema" section of the yaml file.  The schema
+    class is used to validate and instantiate the list of objects defined in the "objects"
+    section.
+    
+    Parameters:
+        data (dict):
+            A yaml loaded data structure
+        make_fuzzy (bool):
+            If True, returns a Fuzzy list of models
+        mixin (object):
+            A custom model class to mixin with base model
+    Returns:
+        A list of instantiated models
+    '''
+
+    # create the schema class object
     schema = create_schema(data['schema'], mixin=mixin)
+
+    # validate and deserialize the model data in Python objects
     models = schema().load(data['objects'], many=True)
+
+    # optionally make the model list fuzzy
     if make_fuzzy:
         models = FuzzyList(models)
     return models

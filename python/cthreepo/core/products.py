@@ -7,16 +7,15 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Wednesday, 15th May 2019 12:21:18 am
+# Last Modified: Tuesday, 21st May 2019 3:59:45 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
 
 import re
 import six
-import os
 
-from marshmallow import Schema, fields, post_load, validate
+from marshmallow import Schema, fields, validate
 from cthreepo.core.fits import Fits, BaseObject
 from cthreepo.utils.general import compute_changelog
 from cthreepo.core.structs import FuzzyList

@@ -8,12 +8,10 @@ schema:
     name: Bintypes
     kind: list(objects)
     <<: *defaults
-    #schema: bintypes.yaml
   templates:
     name: Templates
     kind: list(objects)
     <<: *defaults
-    #schema: templates.yaml
   default_bintype:
     name: Bintype
     kind: string
@@ -26,9 +24,22 @@ schema:
     name: Wavelengths
     kind: list(objects)
     <<: *defaults
-    #schema: wavelength.yaml
   versions:
     name: Versions
     kind: list(objects)
     <<: *defaults
-    #schema: versions.yaml 
+  binid_channels:
+    name: BinId Channels
+    kind: list(objects)
+    <<: *defaults
+    use_model: channels
+  emline_channels:
+    name: Emission Line Channels
+    kind: list(objects)
+    <<: *defaults
+    use_model: channels
+  specindex_channels:
+    name: Spectral Index Channels
+    kind: list(objects)
+    <<: *defaults
+    use_model: channels
