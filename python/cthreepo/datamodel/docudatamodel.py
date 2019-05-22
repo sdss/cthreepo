@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 10:40:25 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Wednesday, 22nd May 2019 5:27:50 pm
+# Last Modified: Wednesday, 22nd May 2019 5:28:53 pm
 # Modified By: Brian Cherinka
 
 
@@ -57,88 +57,6 @@ def _indent(text, level=1):
 #    order by
 #       Name asc
 #
-
-
-# class DataModelDirective(rst.Directive):
-#     ''' '''
-#     has_content = False
-#     required_arguments = 1
-#     option_spec = {
-#         'prog': directives.unchanged_required,
-#         'title': directives.unchanged,
-#         'fits': directives.flag,
-#     }
-
-#     def _load_module(self, module_path):
-#         """Load the module."""
-
-#         # __import__ will fail on unicode,
-#         # so we ensure module path is a string here.
-#         module_path = str(module_path)
-
-#         try:
-#             module_name, attr_name = module_path.split(':', 1)
-#         except ValueError:  # noqa
-#             raise self.error('"{0}" is not of format "module:parser"'.format(module_path))
-
-#         try:
-#             mod = __import__(module_name, globals(), locals(), [attr_name])
-#         except (Exception, SystemExit) as exc:  # noqa
-#             err_msg = 'Failed to import "{0}" from "{1}". '.format(attr_name, module_name)
-#             if isinstance(exc, SystemExit):
-#                 err_msg += 'The module appeared to call sys.exit()'
-#             else:
-#                 err_msg += 'The following exception was raised:\n{0}'.format(
-#                     traceback.format_exc())
-
-#             raise self.error(err_msg)
-
-#         if not hasattr(mod, attr_name):
-#             raise self.error('Module "{0}" has no attribute "{1}"'.format(module_name, attr_name))
-
-#         return getattr(mod, attr_name)
-
-#     def _generate_nodes(self, name, command, parent=None, options={}):
-#         """Generate the relevant Sphinx nodes.
-#         Format a `click.Group` or `click.Command`.
-#         :param name: Name of command, as used on the command line
-#         :param title: Title of a group`
-#         :param command: Instance of `click.Group` or `click.Command`
-#         :param parent: Instance of `click.Context`, or None
-#         :param show_nested: Whether subcommands should be included in output
-#         :returns: A list of nested docutil nodes
-#         """
-
-#         # Title
-#         source_name = name
-
-#         section = nodes.section(
-#             '',
-#             nodes.title(text=name),
-#             ids=[nodes.make_id(source_name)],
-#             names=[nodes.fully_normalize_name(source_name)])
-
-#         # Summary
-
-#         result = statemachine.ViewList()
-#         lines = _format_command(name, command, **options)
-#         for line in lines:
-#             result.append(line, source_name)
-#         self.state.nested_parse(result, 0, section)
-
-#         return [section]
-
-#     def run(self):
-#         self.env = self.state.document.settings.env
-
-#         command = self._load_module(self.arguments[0])
-
-#         if 'prog' in self.options:
-#             prog_name = self.options.get('prog')
-#         else:
-#             raise self.error(':prog: must be specified')
-
-#         return self._generate_nodes(prog_name, command, None, options=self.options)
 
 
 def make_list(items, links=False):

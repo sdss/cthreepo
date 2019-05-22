@@ -20,5 +20,6 @@ Added
 * marshmallow schema creation for Products, Models for object validation
 * datamodel organization by version or product
 * sphinx rst documentation for programmatic datamodels
-* starter Fits and Datamodel Sphinx Directives
+* starter Fits, Catalog classes and utilities
+* starter Fits, Catalog and Datamodel Sphinx Directives
 
