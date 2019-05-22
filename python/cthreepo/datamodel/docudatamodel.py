@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 10:40:25 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Tuesday, 14th May 2019 4:46:37 pm
+# Last Modified: Wednesday, 22nd May 2019 5:27:50 pm
 # Modified By: Brian Cherinka
 
 
@@ -19,6 +19,7 @@ from docutils import statemachine
 import traceback
 import importlib
 import six
+import abc
 
 
 def _indent(text, level=1):
@@ -151,6 +152,16 @@ def make_list(items, links=False):
             itemstr = f'{item}'
         yield f'* {itemstr}'
     yield ''
+
+
+def _format_table_info(inst):
+    ''' Format the Table info '''
+
+    yield '.. code::'
+    yield ''
+    info = inst._info.split('\n')
+    for line in info:
+        yield _indent(line)
 
 
 def _format_fits_info(inst):
@@ -316,47 +327,66 @@ def load_module(module_path, error=None, products=None):
     return getattr(module, attr_name)
 
 
-class FitsDirective(rst.Directive):
-    ''' Directive to display a FITS object '''
+class BaseDirective(abc.ABC, rst.Directive):
+    ''' Base Directive class '''
 
+    product = None
+    add_docstring = None
+    add_version = None
     has_content = False
     required_arguments = 1
     final_argument_whitespace = True
-    option_spec = {
-        'name': directives.unchanged_required,
-        'change': directives.flag
-    }
 
     def run(self):
         ''' run the directive and parse the content '''
-
         self.env = self.state.document.settings.env
-
-        # Raise an error if the directive does not have contents.
-        #self.assert_has_content()
 
         # get the directive argument
         fileclass = self.arguments[0]
         # load the module or object
-        product_obj = load_module(fileclass, products=True)
-        # define the basic FITS TOC tree
+        obj = load_module(fileclass, products=self.product)
+        # define the basic TOC tree
         base_name = self.options['name'].lower().strip().replace(' ', '_')
-        toc = [('Basic Info', base_name + '_info'), ('Header', base_name + '_header'), 
-               ('Tables', base_name + '_tables')]
+        toc = self.get_toc(base_name)
 
         # add a change log
         if 'change' in self.options:
             toc.append(('ChangeLog', base_name + '_changelog'))
 
-        # make the initial FITS section
-        section = self._make_section_main(product_obj, items=toc, tag=base_name)
-        # create the individual FITS sections
+        # make the initial main section
+        section = self._make_section_main(obj, items=toc, tag=base_name)
+        # create the individual sections
         for item in toc:
-            section = self._make_section(product_obj, node=section, title=item[0], refid=item[1])
+            section = self._make_section(obj, node=section, title=item[0], refid=item[1])
 
         return [section]
 
-    def _make_section_main(self, obj, items=None, tag='main'):
+    def _make_ref(self, refname, node):
+        ''' make a reference link '''
+        lines = [f'.. _{refname}:']
+        result = statemachine.ViewList()
+        for line in lines:
+            result.append(line, 'tables')
+        self.state.nested_parse(result, 0, node)
+        return node
+
+    def _parse_format(self, lines, tag, node):
+        ''' parse the RST format and add into a node '''
+        result = statemachine.ViewList()
+        for line in lines:
+            result.append(line, tag)
+        self.state.nested_parse(result, 0, node)
+        return node
+
+    @abc.abstractmethod
+    def get_toc(self, base_name):
+        pass
+
+    @abc.abstractmethod
+    def get_section_content(self, obj, refid):
+        pass
+        
+    def _make_section_main(self, obj=None, items=None, tag='main'):
         ''' make a section node - main '''
         filename = self.options['name']
         title = nodes.title(text=filename)
@@ -364,8 +394,9 @@ class FitsDirective(rst.Directive):
         section = nodes.section('', title, ids=[tag], names=[tag])
 
         # add docstring
-        docs = [nodes.paragraph(text=i) for i in obj.__doc__.split('\n')]
-        section += nodes.line_block('', *docs)
+        if self.add_docstring:
+            docs = [nodes.paragraph(text=i) for i in obj.__doc__.split('\n')]
+            section += nodes.line_block('', *docs)
 
         # add the main toc
         lines = make_list(items, links=True)
@@ -375,11 +406,12 @@ class FitsDirective(rst.Directive):
         self.state.nested_parse(result, 0, section)
 
         # add any version information
-        lines = _format_version(obj)
-        result = statemachine.ViewList()
-        for line in lines:
-            result.append(line, tag)
-        self.state.nested_parse(result, 0, section)
+        if self.add_version:
+            lines = _format_version(obj)
+            result = statemachine.ViewList()
+            for line in lines:
+                result.append(line, tag)
+            self.state.nested_parse(result, 0, section)
         return section
 
     def _make_section(self, obj, node=None, title=None, refid=None):
@@ -394,10 +426,53 @@ class FitsDirective(rst.Directive):
         else:
             node = section
 
+        # generate section content
+        lines = self.get_section_content(obj, refid)
+
+        if lines:
+            node = self._parse_format(lines, refid, node)
+
+        return node
+
+
+class ProductDirective(BaseDirective):
+    ''' Product Directive '''
+
+    product = True
+    add_docstring = True
+    add_version = True
+    option_spec = {
+        'name': directives.unchanged_required,
+        'change': directives.flag
+    }
+
+    def get_toc(self, base_name):
+        pass
+
+    def get_section_content(self, obj, refid):
+        pass
+
+    def get_recent_product(self, obj):
         # expand the fits product
         products = obj.expand_product()
         # get most recent
         inst = products[-1]
+        return inst
+
+
+class FitsDirective(ProductDirective):
+
+    def get_toc(self, base_name):
+        ''' get a TOC '''
+        toc = [('Basic Info', base_name + '_info'), ('Header', base_name + '_header'),
+               ('Tables', base_name + '_tables')]
+        return toc
+    
+    def get_section_content(self, obj, refid):
+        ''' generate section content for a fits file '''
+
+        # get product instance
+        inst = self.get_recent_product(obj)
         # create section content
         lines = None
         if 'info' in refid:
@@ -409,98 +484,47 @@ class FitsDirective(rst.Directive):
         elif 'changelog' in refid:
             log = obj.compute_changelog()
             lines = _format_changelog(log)
-
-        if lines:
-            node = self._parse_format(lines, refid, node)
-
-        return node
-
-    def _make_ref(self, refname, node):
-        ''' make a reference link '''
-        lines = [f'.. _{refname}:']
-        result = statemachine.ViewList()
-        for line in lines:
-            result.append(line, 'tables')
-        self.state.nested_parse(result, 0, node)
-        return node
-
-    def _parse_format(self, lines, tag, node):
-        ''' parse the RST format and add into a node '''
-        result = statemachine.ViewList()
-        for line in lines:
-            result.append(line, tag)
-        self.state.nested_parse(result, 0, node)
-        return node
+        
+        return lines
 
 
-class DataModelDirective(rst.Directive):
-    ''' Directive describing a DataModel object '''
-    has_content = False
-    required_arguments = 1
-    final_argument_whitespace = True
+class CatalogDirective(ProductDirective):
+
+    def get_toc(self, base_name):
+        ''' get a TOC '''
+        toc = [('Basic Info', base_name + '_info')]
+        return toc
+
+    def get_section_content(self, obj, refid):
+        ''' generate section content for a catalog file '''
+
+        # get product instance
+        inst = self.get_recent_product(obj)
+        # create section content
+        lines = None
+        if 'info' in refid:
+            lines = _format_table_info(inst)
+        elif 'changelog' in refid:
+            log = obj.compute_changelog()
+            lines = _format_changelog(log)
+
+        return lines
+
+
+class DataModelDirective(BaseDirective):
     option_spec = {
-        'name': directives.unchanged_required,
+        'name': directives.unchanged_required
     }
 
-    def run(self):
-        ''' run the directive and parse the content '''
-
-        self.env = self.state.document.settings.env
-
-        # Raise an error if the directive does not have contents.
-        #self.assert_has_content()
-
-        # get the directive argument
-        fileclass = self.arguments[0]
- 
-        # load the module or object
-        dm = load_module(fileclass)
-
-        # define the basic TOC tree
-        base_name = self.options['name'].lower().strip().replace(' ', '_')
+    def get_toc(self, base_name):
+        ''' get a TOC '''
         toc = [('Products', base_name + '_products'), ('Models', base_name + '_models')]
+        return toc
 
-        # # add a change log
-        # if 'change' in self.options:
-        #     toc.append(('ChangeLog', base_name + '_changelog'))
+    def get_section_content(self, obj, refid):
+        ''' generate section content for a datamodel '''
 
-        # make the initial section
-        section = self._make_section_main(dm, items=toc, tag=base_name)
-        # create the individual FITS sections
-        for item in toc:
-            section = self._make_section(dm, node=section, title=item[0], refid=item[1])
-
-        return [section]
-
-    def _make_section_main(self, obj, items=None, tag='main'):
-        ''' make a main section node '''
-        filename = self.options['name']
-        title = nodes.title(text=filename)
-
-        section = nodes.section('', title, ids=[tag], names=[tag])
-
-        # add the main toc
-        lines = make_list(items, links=True)
-        result = statemachine.ViewList()
-        for line in lines:
-            result.append(line, tag)
-        self.state.nested_parse(result, 0, section)
-        
-        return section
-
-    def _make_section(self, obj, node=None, title=None, refid=None):
-        ''' make a section node '''
-
-        title_node = nodes.title(text=title)
-
-        if refid:
-            node = self._make_ref(refid, node)
-        section = nodes.section('', title_node, ids=[refid], names=[refid])
-        if node:
-            node += section
-        else:
-            node = section
-
+        # create section content
         lines = None
         if 'product' in refid:
             item = getattr(obj, 'products')
@@ -508,30 +532,11 @@ class DataModelDirective(rst.Directive):
         elif 'models' in refid:
             item = getattr(obj, 'models')
             lines = _format_models(item)
-            
-        if lines:
-            node = self._parse_format(lines, refid, node)
 
-        return node
-
-    def _make_ref(self, refname, node):
-        ''' make a reference link '''
-        lines = [f'.. _{refname}:']
-        result = statemachine.ViewList()
-        for line in lines:
-            result.append(line, 'tables')
-        self.state.nested_parse(result, 0, node)
-        return node
-
-    def _parse_format(self, lines, tag, node):
-        ''' parse the RST format and add into a node '''
-        result = statemachine.ViewList()
-        for line in lines:
-            result.append(line, tag)
-        self.state.nested_parse(result, 0, node)
-        return node
+        return lines
 
 
 def setup(app):
     app.add_directive('fits', FitsDirective)
+    app.add_directive('catalog', CatalogDirective)
     app.add_directive('datamodel', DataModelDirective)

@@ -21,3 +21,11 @@ This page highlights examples of documenting data products.
 
 .. fits:: cthreepo.datamodel.manga:maps
     :name: DAP MAPS
+
+
+.. _catalog:
+
+.. catalog:: cthreepo.datamodel.simple:catalog
+    :name: Simple Catalog
+    :change:
+
