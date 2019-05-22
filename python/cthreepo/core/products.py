@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Tuesday, 21st May 2019 3:59:45 pm
+# Last Modified: Wednesday, 22nd May 2019 3:51:27 pm
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
@@ -16,7 +16,7 @@ import re
 import six
 
 from marshmallow import Schema, fields, validate
-from cthreepo.core.fits import Fits, BaseObject
+from cthreepo.core.fits import Fits, BaseObject, Catalog
 from cthreepo.utils.general import compute_changelog
 from cthreepo.core.structs import FuzzyList
 from cthreepo.utils.yaml import read_yaml, expand_yaml
@@ -79,7 +79,7 @@ class BaseProduct(object):
             if len(exists) != len(verlist):
                 log.warning('One or more product files do not exist. Changelog will be incomplete')
             
-            self._changes = compute_changelog(rev_list)
+            self._changes = compute_changelog(rev_list, change=self.datatype)
         return self._changes
 
     def _create_datatype(self, version, example_ver=None):
@@ -126,6 +126,23 @@ class BaseProduct(object):
                     return inst
                 name = attrs.pop('path_name')
                 inst = Fits.from_path(name, example=example, **attrs)
+            else:
+                log.warning('No example path or path_kwargs found in product yaml definition. '
+                            'Cannot expand Fits product. Defaulting to base Object.')
+                inst = BaseObject(product=self.name, version=version)
+        elif datatype == 'catalog':
+            if example and not attrs['path_name']:
+                inst = Catalog.from_example(example, **attrs)
+            elif attrs['path_name']:
+                # assert example or 'path_kwargs' in attrs, ('Must have an example or path_kwargs set'
+                #                                            ' to expand products using path_name')
+                if not example and 'path_kwargs' not in attrs:
+                    log.warning('No example path or path_kwargs found in product yaml definition. '
+                                'Cannot expand Fits product. Defaulting to base Object.')
+                    inst = BaseObject(product=self.name, version=version)
+                    return inst
+                name = attrs.pop('path_name')
+                inst = Catalog.from_path(name, example=example, **attrs)
             else:
                 log.warning('No example path or path_kwargs found in product yaml definition. '
                             'Cannot expand Fits product. Defaulting to base Object.')

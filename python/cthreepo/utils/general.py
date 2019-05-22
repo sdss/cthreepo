@@ -7,17 +7,23 @@
 # Created: Saturday, 22nd December 2018 1:58:01 pm
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Friday, 17th May 2019 1:16:34 pm
+# Last Modified: Wednesday, 22nd May 2019 4:06:00 pm
 # Modified By: Brian Cherinka
 
 
 from __future__ import print_function, division, absolute_import
 import six
 import abc
-from astropy.io import fits
+from io import StringIO
+from astropy.io import fits, ascii as astropy_ascii
+from astropy.table import Table
 from cthreepo.core.structs import FuzzyList
 from cthreepo.misc import log
 import matplotlib
+try:
+    from astropy.utils.diff import report_diff_values
+except ImportError:
+    report_diff_values = None
 
 
 def settex():
@@ -30,14 +36,6 @@ def settex():
 def _indent(s):
     ''' indent a string '''
     return ' ' * 4 + s
-
-
-def _check_fits(data):
-    ''' Check the input for proper FITS file name or object '''
-    if not isinstance(data, fits.hdu.hdulist.HDUList):
-        assert isinstance(data, six.string_types), 'input must be string filename or a FITS HDUList '
-        data = fits.open(data)
-    return data
 
 
 class ChangeLog(FuzzyList):
@@ -85,7 +83,6 @@ class FileDiff(abc.ABC, object):
     @abc.abstractclassmethod
     def report(self):
         ''' Print a report '''
-        pass
 
 
 class FitsDiff(FileDiff):
@@ -95,8 +92,8 @@ class FitsDiff(FileDiff):
         super(FitsDiff, self).__init__(file1, file2, diff_type='fits', versions=versions)
 
         # get the HDU lists
-        self.hdulist = _check_fits(self.file1)
-        self.hdulist2 = _check_fits(self.file2)
+        self.hdulist = self._check_fits(self.file1)
+        self.hdulist2 = self._check_fits(self.file2)
 
         # HDU differences
         n_hdus = len(self.hdulist)
@@ -120,7 +117,8 @@ class FitsDiff(FileDiff):
         # get the full report
         self.astropy_diff = self.get_astropy_diff() if full else None
 
-    def _check_fits(self, data):
+    @staticmethod
+    def _check_fits(data):
         ''' Check the input for proper FITS file name or object '''
         if not isinstance(data, fits.hdu.hdulist.HDUList):
             assert isinstance(
@@ -162,35 +160,76 @@ class FitsDiff(FileDiff):
         return diffreport
 
 
-# def _replace_version(name, version):
-#     ''' Check if a version is a string, or tuple of versions '''
+class CatalogDiff(FileDiff):
+    ''' Difference between two catalog files '''
 
-#     # check version format
-#     islist = isinstance(version, (list, tuple))
-#     allstrings = all([isinstance(v, six.string_types) for v in sum(version, ())])
-#     assert islist and allstrings, 'Version must be in the proper format'
+    def __init__(self, file1, file2, full=None, versions=None):
+        super(CatalogDiff, self).__init__(file1, file2, diff_type='catalog', versions=versions)
 
-#     # do string replacement
-#     for ver in version:
-#         oldv, newv = ver
-#         name = name.replace(oldv, newv)
+        # get the catalog tables
+        self.table = self._check_catalog(self.file1)
+        self.table2 = self._check_catalog(self.file2)
 
-#     return name
+        # Table row differences
+        n_rows = len(self.table)
+        n_row2s = len(self.table2)
+        self.delta_rows = abs(n_rows - n_row2s)
+        self.n_row_diffs = (n_rows, n_row2s)
 
+        # Table column differences
+        col_names = self.table.colnames
+        col2_names = self.table2.colnames
+        self.delta_cols = len(set(col_names) ^ set(col2_names))
+        self.added_cols = list(set(col_names) - set(col2_names))
+        self.removed_cols = list(set(col2_names) - set(col_names))
 
-# def _format_versions(versions):
-#     ''' orient the versions into the proper format '''
+        # get the full report
+        self.astropy_diff = self.get_astropy_diff() if full else None
+        
+    @staticmethod
+    def _check_catalog(data):
+        ''' Check the input for proper Catalog file name or object '''
+        if not isinstance(data, Table):
+            assert isinstance(
+                data, six.string_types), 'input must be string filename or a Table '
+            assert '.csv' in data, 'No .csv suffix found.  Is this a proper catalog file?'
+            data = astropy_ascii.read(data)
+        return data
 
-#     if isinstance(versions, dict):
-#         versions = versions.values()
-#     versions = list(versions)
-#     # wrap string version in a tuple
-#     versions = [(v,) if isinstance(v, six.string_types) else v for v in versions]
-#     # create list of tuples of (v1, v2)
-#     versions = list(zip(versions[:-1], versions[1:]))
-#     # reformat the versions into tuples of by version column
-#     versions = [tuple(zip(*v)) for v in versions]
-#     return versions
+    def get_astropy_diff(self):
+        report = None
+        if report_diff_values:
+            s = StringIO()
+            same = report_diff_values(self.table, self.table2, s)
+            if not same:
+                s.seek(0)
+                report = ''.join(s.readlines())
+                s.close()
+        return report
+
+    def report(self, split=None, full=None):
+        ''' Print the Catalog Different report '''
+
+        diffreport = 'Version: {0} to {1}\n'.format(*self.versions)
+
+        # print the column differences
+        diffreport += 'Changes in row number: {0}\n'.format(self.delta_rows)
+        diffreport += 'Changes in column number: {0}\n'.format(self.delta_cols)
+        if self.delta_cols > 0:
+            diffreport += 'Added Columns: {0}\n'.format(', '.join(self.added_cols))
+            diffreport += 'Removed Columns: {0}\n\n'.format(', '.join(self.removed_cols))
+
+        # print the Astropy Table difference report
+        if self.astropy_diff or full:
+            fullreport = self.astropy_diff or self.get_astropy_diff()
+            diffreport += '\nFull Report:\n'
+            diffreport += fullreport
+
+        # split the report
+        if split:
+            diffreport = diffreport.split('\n')
+
+        return diffreport
 
 
 def compute_diff(oldfile, otherfile, change='fits', versions=None):
@@ -209,6 +248,8 @@ def compute_diff(oldfile, otherfile, change='fits', versions=None):
     # check the type of file
     if change == 'fits':
         diffobj = FitsDiff
+    elif change == 'catalog':
+        diffobj = CatalogDiff
 
     # compute file difference
     fd = diffobj(name, other_name, versions=versions)
@@ -216,7 +257,7 @@ def compute_diff(oldfile, otherfile, change='fits', versions=None):
     return fd
 
 
-def compute_changelog(items):
+def compute_changelog(items, change=None):
     zipped = list(zip(items[:-1], items[1:]))
     fds = []
     for item in zipped:
@@ -226,116 +267,9 @@ def compute_changelog(items):
         exist2 = item[1].file_exists
         if exist1 and exist2:
             fds.append(compute_diff(str(item[0].fullpath), str(
-                item[1].fullpath), versions=[v1, v2]))
+                item[1].fullpath), versions=[v1, v2], change=change))
         else:
             log.warning('One or more files does not exist.  Cannot compute changelog '
                         f'for this changeset. Version {v1}: exists={exist1}; '
                         f'Version {v2}: exists={exist2}')
     return ChangeLog(fds)
-
-# def compute_changelog(obj, change='fits'):
-#     ''' compute a changelog for all available versions of the FITS '''
-
-#     # check if object has any versions set
-#     if not hasattr(obj, 'versions'):
-#         print('No versions found.  Cannot compute changelog')
-#         return None
-
-#     # check the type of file
-#     if change == 'fits':
-#         diffobj = FitsDiff
-
-#     name = obj.fullpath
-#     fds = []
-
-#     # reverse the releases
-#     rev = {v: k for k, v in obj.versions.items()}
-#     # reformat the versions
-#     versions = _format_versions(obj.versions.values())
-
-#     for vers in versions:
-#         rel1, rel2 = [rev[v] for v in list(zip(*vers))]
-#         new_name = _replace_version(name, vers)
-#         try:
-#             fd = diffobj(name, new_name, versions=[rel1, rel2])
-#         except FileNotFoundError:
-#             print(f'No file found for {new_name}')
-#         else:
-#             name = new_name
-#             fds.append(fd)
-
-#     # for rel in releases[:-1]:
-#     #     idx = releases.index(rel)
-#     #     v1 = obj.versions[rel]
-#     #     v2 = obj.versions[releases[idx + 1]]
-
-
-#     #     name1 = name
-#     #     name2 = (name1.replace(v1, v2))
-#     #     fd = diffobj(name1, name2, versions=[v1, v2])
-#     #     name = name2
-#     #     fds.append(fd)
-
-#     return ChangeLog(fds)
-
-
-# def reverse_parse(pattern, template):
-#     ''' reverse parse an example filepath into sdss_access keyword components '''
-
-#     import os
-#     import re
-#     # expand the environment variable
-#     pattern = os.path.expandvars(pattern)
-#     # handle special functions; perform a drop in replacement
-#     if re.match('%spectrodir', pattern):
-#         pattern = re.sub('%spectrodir', os.environ['BOSS_SPECTRO_REDUX'], pattern)
-#     elif re.search('%platedir', pattern):
-#         pattern = re.sub('%platedir', '(.*)/{plateid:0>6}', pattern)
-#     elif re.search('%definitiondir', pattern):
-#         pattern = re.sub('%definitiondir', '{designid:0>6}', pattern)
-#     if re.search('%plateid6', pattern):
-#         pattern = re.sub('%plateid6', '{plateid:0>6}', pattern)
-        
-#     # check if pattern has any brackets
-#     haskwargs = re.search('[{}]', pattern)
-#     if not haskwargs:
-#         return None
-
-#     # escape the envvar $ and any dots
-#     subpatt = pattern.replace('$', '\\$').replace('.', '\\.')
-#     # define search pattern; replace all template keywords with regex "(.*)" group
-#     research = re.sub('{(.*?)}', '(.*)', subpatt)
-#     # look for matches in pattern and template
-#     pmatch = re.search(research, pattern)
-#     tmatch = re.search(research, template)
-    
-#     path_dict = {}
-#     # if template match extract keys and values from the match groups
-#     if pmatch and tmatch:
-#         values = tmatch.groups(0)
-#         keys = pmatch.groups(0)
-#         assert len(keys) == len(values), 'pattern and template matches must have same length'
-#         parts = zip(keys, values)
-#         # parse into dictionary
-#         for part in parts:
-#             value = part[1]
-#             if re.findall('{(.*?)}', part[0]):
-#                 # get the key name inside the brackets
-#                 keys = re.findall('{(.*?)}', part[0])
-#                 # remove the type : designation
-#                 keys = [k.split(':')[0] for k in keys]
-#                 # handle double bracket cases
-#                 if len(keys) > 1:
-#                     if keys[0] == 'dr':
-#                         drval = re.match('^DR[1-9][0-9]', value).group(0)
-#                         otherval = value.split(drval)[-1]
-#                         pdict = {keys[0]: drval, keys[1]: otherval}
-#                     elif keys[0] in ['rc', 'br', 'filter', 'camrow']:
-#                         pdict = {keys[0]: value[0], keys[1]: value[1:]}
-#                     else:
-#                         raise ValueError('This case has not yet been accounted for.')
-#                     path_dict.update(pdict)
-#                 else:
-#                     path_dict[keys[0]] = value
-#     return path_dict
-

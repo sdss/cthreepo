@@ -7,7 +7,7 @@
 # Created: Friday, 12th April 2019 10:17:04 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Tuesday, 21st May 2019 3:59:20 pm
+# Last Modified: Tuesday, 21st May 2019 6:00:37 pm
 # Modified By: Brian Cherinka
 
 
@@ -27,7 +27,7 @@ class BaseClass(object):
 
 
 class BaseSchema(Schema):
-    ''' Base class for schema validation '''
+    ''' Base class to use for all new Schema objects '''
     _class = None
 
     class Meta:
@@ -40,7 +40,16 @@ class BaseSchema(Schema):
 
 
 class ObjectField(fields.Field):
-    ''' custom object field '''
+    ''' custom marshmallow object field
+
+    This is a custom marshmallow Field class used to indicate that an attribute
+    should be represented by a custom model object type, rather than a string or integer. It
+    contains special methods for custom serialization and deserialization of model datatypes.
+    For example, the yaml string representation 'LOG' for a log-linear wavelength will get
+    deserialized into an instance Wavelength('LOG'). Custom fields are described at
+    https://marshmallow.readthedocs.io/en/3.0/custom_fields.html.
+    
+    '''
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
@@ -57,7 +66,18 @@ class ObjectField(fields.Field):
 
 
 def _get_attr(obj, name):
-    ''' Get an attribute from a class object '''
+    ''' Get an attribute from a class object
+    
+    Attempts to retrieve an attribute from a class object
+    
+    Parameters:
+        obj (object):
+            A class object to access
+        name (str):
+            The attribute name to access
+    Returns:
+        a class attribute
+    '''
     if hasattr(obj, name):
         return obj.__getattribute__(name)
     else:
@@ -65,7 +85,21 @@ def _get_attr(obj, name):
 
 
 def create_class(data, mixin=None):
-    ''' creates a new datamodel object class '''
+    ''' creates a new datamodel object class
+
+    Constructs a Python class object based on a model "schema" dictionary.
+    Converts a model yaml file, 'versions.yaml' into a Python Version class object,
+    which is used for instantiating the designated "objects" in the yaml section.
+
+    Parameters:
+        data (dict):
+            The schema dictonary section of a yaml file
+        mixin (object):
+            A custom model class to mixin with base model
+
+    Returns:
+        A new Python class object
+    '''
 
     # define custom repr
     def new_rep(self):
@@ -238,9 +272,10 @@ def create_schema(data, mixin=None):
     # create the base object class
     class_obj = create_class(data, mixin=mixin)
 
-    # add the object class to the schema attributes for accessibility
-    # create the new schema class object
+    # add the object class to the schema attributes to allow
+    # for object deserialization from yaml representation.  See BaseSchema for use.
     attrs['_class'] = class_obj
+    # create the new schema class object
     objSchema = type(name + 'Schema', (BaseSchema,), attrs)
 
     # add the schema class instance to the object class for accessibility

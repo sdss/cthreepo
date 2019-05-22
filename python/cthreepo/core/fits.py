@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 6:20:08 am
 # License: <<licensename>>
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Monday, 13th May 2019 4:02:46 pm
+# Last Modified: Wednesday, 22nd May 2019 2:53:40 pm
 # Modified By: Brian Cherinka
 
 
@@ -17,7 +17,7 @@ import re
 import six
 import pathlib
 from io import StringIO
-from astropy.io import fits
+from astropy.io import fits, ascii as astropy_ascii
 from sdss_access.path import Path
 from cthreepo.utils.general import compute_diff
 
@@ -44,6 +44,7 @@ class FileObject(BaseObject):
         self.path_name = kwargs.pop('path_name', None)
         self.parent = kwargs.pop('parent', None)
         self._info = None
+        self._stats = None
         self._changes = None
         self.loaded = False
 
@@ -158,7 +159,6 @@ class FileObject(BaseObject):
         return self._changes
 
 
-
 class Fits(FileObject):
 
     def __init__(self, inputs=None, filename=None, **kwargs):
@@ -201,3 +201,56 @@ class Fits(FileObject):
         if not self.loaded and self.file_exists:
             self._read_file()
 
+
+class Catalog(FileObject):
+
+    def __init__(self, inputs=None, filename=None, **kwargs):
+        super(Catalog, self).__init__(inputs=inputs, filename=filename, **kwargs)
+
+        # open the file if it exists
+        if self.file_exists:
+            self._read_file()
+
+    def __repr__(self):
+        return (f'Catalog(name={self.filename}, version={self.version or "unknown"}, '
+                f'exists={self.file_exists}, loaded={self.loaded})')
+
+    def _read_file(self):
+        ''' Open and read the catalog file '''
+
+        try:
+            table = astropy_ascii.read(self.fullpath)
+        except Exception:
+            raise ValueError('Filename does not appear to be a FITS file')
+        else:
+            self.table = table
+            self._get_info()
+            self._get_stats()
+            self.loaded = True
+
+    def _get_info(self):
+        if not self._info:
+            s = StringIO()
+            self.table.info(out=s)
+            s.seek(0)
+            self._info = ''.join(s.readlines())
+            s.close()
+
+    def _get_stats(self):
+        if not self._stats:
+            s = StringIO()
+            self.table.info('stats', out=s)
+            s.seek(0)
+            self._stats = ''.join(s.readlines())
+            s.close()
+            
+    def info(self, option=None):
+        ''' prints the info from the file '''
+        if option == 'stats':
+            print(self._stats)
+        else:
+            print(self._info)
+
+    def load(self):
+        if not self.loaded and self.file_exists:
+            self._read_file()
