@@ -37,6 +37,10 @@ schema:
       name: ID
       kind: integer
       default: null
+    db_name:
+      name: Database Column Name
+      kind: string
+      default: null
 
 objects:
   # emission line channels
@@ -499,4 +503,110 @@ objects:
     group: binid
     formats: {string: 'Spectral indices'}
     unit: null
+
+  # coordinate channels
+  - name: on_sky_x
+    description: On-Sky spaxel X coordinate
+    group: coordinates
+    formats: {string: 'On-sky X'}
+  - name: on_sky_y
+    description: On-Sky spaxel Y coordinate
+    group: coordinates
+    formats: {string: 'On-sky Y'}
+  - name: elliptical_radius
+    description: Elliptical Radius coordinate
+    group: coordinates
+    formats: {string: 'Elliptical radius'}
+    unit: arcsec
+  - name: elliptical_azimuth
+    description: Elliptical Azimuth coordinate
+    group: coordinates
+    formats: {string: 'Elliptical azimuth'}
+    unit: deg
+  - name: r_re
+    description: Ratio of Radius to Effective Radius
+    group: coordinates
+    formats: {string: 'R/Reff'}
+  - name: lum_weighted_on_sky_x
+    description: Light-weighted offset X coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted offset X'}
+    unit: arcsec
+  - name: lum_weighted_on_sky_y
+    description: Light-weighted offset Y coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted offset Y'}
+    unit: arcsec
+  - name: lum_weighted_elliptical_radius
+    description: Light-Weighted Elliptical Radius coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted radial offset'}
+    unit: arcsec
+  - name: lum_weighted_elliptical_azimuth
+    description: Light-Weighted Elliptical Azimuth coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted azimuthal offset'}
+    unit: deg
+
+  # merit channels
+  - name: 68th_percentile
+    description: 68th Percentile
+    group: figure_of_merit
+    formats: {string: '68th percentile', latex: '68^{th} percentile'}
+  - name: 99th_percentile
+    description: 99th Percentile
+    group: figure_of_merit
+    formats: {string: '99th percentile', latex: '99^{th} percentile'}
+  - name: rms
+    description: RMS of the residuals for all fitted pixels in the stellar continuum.
+    group: figure_of_merit
+    formats: {string: 'RMS of residuals for fitted pixels', latex: 'RMS of residuals'}
+    unit: erg / (second * cm**2 * angstrom * spaxel)
+    scale: 1e-17
+  - name: frms
+    description: Fractional residuals for the stellar continuum fit.
+    group: figure_of_merit
+    formats: {string: 'RMS of the fractional residuals', latex: 'RMS of the fractional residuals'}
+  - name: rchi2
+    description: Reduced chi-square of the stellar continuum fit.
+    group: figure_of_merit
+    formats: {string: 'Stellar continuum reduced chi-square', latex: 'Stellar\ continuum\ reduced\ \chi^2'}
+  - name: fresid_68th_percentile
+    description: 68%% growth of the fractional residuals between the model and data.
+    group: figure_of_merit
+    formats: {string: '68th percentile', latex: '68^{th} percentile'}
+    db_name: 68th_perc_frac_resid
+  - name: fresid_99th_percentile
+    description: 99%% growth of the fractional residuals between the model and data.
+    group: figure_of_merit
+    formats: {string: '99th percentile Frac. Residuals', latex: '99^{th} percentile Frac. Residuals'}
+    db_name: 99th_perc_frac_resid
+  - name: fresid_max
+    description: Maximum growth of the fractional residuals between the model and data.
+    group: figure_of_merit
+    formats: {string: 'Max Fractional Residual', latex: 'Max Fractional Residual'}
+    db_name: max_frac_resid
+  - name: per_pix_chi_68th_percentile
+    description: 68%% growth of the error-normalized residuals
+    group: figure_of_merit
+    formats: {string: '68th percentile', latex: '68^{th} percentile'}
+    db_name: 68th_perc_per_pix_chi
+  - name: per_pix_chi_99th_percentile
+    description: 99%% growth of the error-normalized residuals
+    group: figure_of_merit
+    formats: {string: '99th percentile', latex: '99^{th} percentile'}
+    db_name: 99th_perc_per_pix_chi
+  - name: per_pix_chi_max
+    description: Maximum growth of the error-normalized residuals
+    group: figure_of_merit
+    formats: {string: 'Max Error-Normalized Residuals', latex: 'Max Error-Normalized Residuals'}
+    db_name: max_per_pix_chi
+  - name: resolution_difference
+    description: Resolution Difference
+    group: figure_of_merit
+    formats: {string: 'Resolution Difference'}
+  - name: fit
+    description: Fit
+    group: figure_of_merit
+    formats: {string: 'Fit'}
 
