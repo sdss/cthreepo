@@ -7,13 +7,14 @@
 # Created: Friday, 12th April 2019 10:17:11 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2019 Brian Cherinka
-# Last Modified: Wednesday, 22nd May 2019 3:51:27 pm
+# Last Modified: Wednesday, 29th May 2019 10:53:39 am
 # Modified By: Brian Cherinka
 
 from __future__ import print_function, division, absolute_import
 
 import re
 import six
+import copy
 
 from marshmallow import Schema, fields, validate
 from cthreepo.core.fits import Fits, BaseObject, Catalog
@@ -107,8 +108,8 @@ class BaseProduct(object):
 
         # handle some keywords
         attrs['path_name'] = attrs.get('path_name', None)
-        attrs['parent'] = self
         attrs['product'] = self.name
+        attrs['parent'] = _update_parent(self, attrs)
 
         # generate the datatype
         # TODO - clean this up
@@ -151,8 +152,16 @@ class BaseProduct(object):
             inst = BaseObject(product=self.name, version=version)
 
         return inst
-    
+
+
 # main/helper functions
+def _update_parent(parent, attrs):
+    ''' copy the parent and update any attributes '''
+    new_parent = copy.deepcopy(parent)
+    for key, value in attrs.items():
+        #if hasattr(new_parent, key):
+        setattr(new_parent, key, value)
+    return new_parent
 
 
 def _find_version(example, version):

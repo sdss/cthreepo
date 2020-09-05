@@ -7,7 +7,7 @@
 # Created: Saturday, 1st December 2018 10:40:25 am
 # License: BSD 3-clause "New" or "Revised" License
 # Copyright (c) 2018 Brian Cherinka
-# Last Modified: Wednesday, 22nd May 2019 5:28:53 pm
+# Last Modified: Friday, 31st May 2019 11:29:19 am
 # Modified By: Brian Cherinka
 
 
@@ -382,8 +382,8 @@ class FitsDirective(ProductDirective):
 
     def get_toc(self, base_name):
         ''' get a TOC '''
-        toc = [('Basic Info', base_name + '_info'), ('Header', base_name + '_header'),
-               ('Tables', base_name + '_tables')]
+        toc = [('Basic Info', base_name + '_info'), ('Primary Header', base_name + '_header'),
+               ('Extensions', base_name + '_extensions')]
         return toc
     
     def get_section_content(self, obj, refid):
@@ -397,7 +397,7 @@ class FitsDirective(ProductDirective):
             lines = _format_fits_info(inst)
         elif 'header' in refid:
             lines = _format_fits_header(inst)
-        elif 'table' in refid:
+        elif 'extensions' in refid:
             lines = _format_fits_tables(inst)
         elif 'changelog' in refid:
             log = obj.compute_changelog()

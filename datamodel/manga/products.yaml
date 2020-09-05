@@ -100,11 +100,15 @@ maps:
       default_template: GAU-MILESHC
       emline_channels: MPL4 += [oii_3727, oii_3729, heps_3971, hdel_4102, hgam_4341, heii_4687, hei_5877, siii_8831, siii_9071, siii_9533]
       specindex_channels: [d4000, dn4000]
+      merit_channels: [68th_percentile, 99th_percentile]
+      coordinate_channels: [on_sky_x, on_sky_y, elliptical_radius, elliptical_azimuth, lum_weighted_on_sky_x, lum_weighted_on_sky_y, lum_weighted_elliptical_radius, lum_weighted_elliptical_azimuth]
     MPL6: &mpl6
       <<: *mpl5
       bintypes: MPL5 += HYB10
-      binid_channels: ['binned_spectra', 'stellar_continua', 'em_line_moments', 'em_line_models', 'spectral_indices']
-      emline_channels: ['ha_6564', 'hb_4862']
+      binid_channels: [binned_spectra, stellar_continua, em_line_moments, em_line_models, spectral_indices]
+      emline_channels: [oiid_3728, oii_3727, oii_3729,  hthe_3798,  heta_3836, neiii_3869,  hzet_3890,  neiii_3968,  heps_3971,  hdel_4102,  hgam_4341,  heii_4687,  hb_4862,  oiii_4960,  oiii_5008,  hei_5877,  oi_6302,  oi_6365,  nii_6549,  ha_6564,  nii_6585,  sii_6718,  sii_6732] 
+      specindex_channels: [cn1, cn2, ca4227, g4300, fe4383, ca4455, fe4531, c24668, hb, fe5015, mg1, mg2, mgb, fe5270, fe5335, fe5406, fe5709, fe5782, nad, tio1, tio2, hdeltaa, hgammaa, hdeltaf, hgammaf, cahk, caii1, caii2, caii3, pa17, pa14, pa12, mgicvd, naicvd, mgiir, fehcvd, nai, btio, atio, cah1, cah2, naisdss, tio2sdss, d4000, dn4000, tiocvd]
+      coordinate_channels: MPL5 += [r_re]
     MPL7: &dr15
       <<: *mpl6
       bintypes: [HYB10, VOR10]
@@ -118,7 +122,10 @@ maps:
       bintypes: MPL7 += SPX 
       default_bintype: HYB10
       default_template: MILESHC-MILESHC
+      emline_channels: MPL7 += [hei_3889, ni_5199, ni_5201]
+      merit_channels: [rms, frms, rchi2, fresid_68th_percentile, fresid_99th_percentile, fresid_max, per_pix_chi_68th_percentile, per_pix_chi_99th_percentile, per_pix_chi_max]
 
+      
 # manga modelcube
 modelcube:
   name: MODELCUBE

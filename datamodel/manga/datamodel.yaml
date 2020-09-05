@@ -43,3 +43,13 @@ schema:
     kind: list(objects)
     <<: *defaults
     use_model: channels
+  coordinate_channels:
+    name: Coordinate Channels
+    kind: list(objects)
+    <<: *defaults
+    use_model: channels
+  merit_channels:
+    name: Figure of Merit Channels
+    kind: list(objects)
+    <<: *defaults
+    use_model: channels

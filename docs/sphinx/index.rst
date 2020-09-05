@@ -19,6 +19,8 @@ A description of the package can go here.
 * :ref:`DataModels <datamodels>`
 * :ref:`Example Products <products>`
 
+Below are a collection of my favourite recipes. I highly recommend the
+:recipe:ref:`TomatoSoup` recipe in particular!
 
 Reference
 ---------
@@ -27,7 +29,7 @@ Reference
    :maxdepth: 1
 
    api
-
+   tomato-soup
 
 
 Indices and tables
