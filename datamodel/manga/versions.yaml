@@ -1,0 +1,51 @@
+schema:
+  title: Version
+  key: version
+  description: MaNGA release versions
+  properties:
+    release:
+      title: release
+      description: The release name, e.g a DR or MPL
+      type: str
+      required: True
+    drpver:
+      title: drpver
+      description: The version of the DRP pipeline
+      type: str
+      required: True
+    dapver:
+      title: dapver
+      description: The version of the DAP pipeline
+      type: str
+      default: null
+
+objects:
+  - release: MPL1
+    drpver: v1_0_0
+  - release: MPL2
+    drpver: v1_1_2
+  - release: MPL3
+    drpver: v1_3_3
+    dapver: v1_0_0
+  - release: MPL4
+    drpver: v1_5_1
+    dapver: '1.1.1'
+  - release: DR13
+    drpver: v1_5_4
+  - release: MPL5
+    drpver: v2_0_1
+    dapver: '2.0.2'
+  - release: DR14
+    drpver: v2_1_2
+  - release: MPL6
+    drpver: v2_3_1
+    dapver: '2.1.3'
+  - release: MPL7
+    drpver: &dr15drp v2_4_3
+    dapver: &dr15dap '2.2.1'
+  - release: DR15
+    drpver: *dr15drp
+    dapver: *dr15dap
+  - release: MPL8
+    drpver: v2_5_3
+    dapver: '2.3.0'

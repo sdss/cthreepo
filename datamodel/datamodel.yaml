@@ -1,0 +1,63 @@
+
+name: sdss
+description: list of datamodel attributes
+required_keys: [name, kind, required]
+# this schema describes the allowable parameters when defining objects in products.yaml
+schema: &dm
+  name:
+    name: Name
+    kind: string
+    required: True
+    group: Default
+  short:
+    name: Short Description
+    kind: string
+    required: True
+    group: Default
+  description:
+    name: Description
+    kind: string
+    required: True
+    group: Default
+  datatype:  
+    name: Datatype
+    kind: string
+    required: True
+    group: Default
+    add_to_repr: True
+  example:  
+    name: Example
+    kind: string
+    required: False
+    group: Default
+  versions: 
+    name: Versions
+    kind: list(string)
+    required: True
+    group: Default
+  path_name:
+    name: SDSS Access Name
+    kind: string
+    required: False
+    group: Default
+  path_kwargs:
+    name: SDSS Access Keyword Arguments
+    kind: dict
+    required: False
+    group: Default
+  public:
+    name: Public
+    kind: boolean
+    required: False
+    group: Default
+    default: False
+  changelog:
+    name: Changelog
+    kind: dict
+    required: False
+    group: Default
+  defaults:
+    name: Defaults
+    kind: dict
+    required: False
+    group: Default

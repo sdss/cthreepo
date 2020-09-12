@@ -1,0 +1,612 @@
+schema:
+  title: Channel
+  key: channel
+  description: Spectral line channels used in fitting
+  properties:
+    name:
+      title: Name
+      required: True
+      type: str
+    description:
+      title: Description
+      required: True
+      type: str
+      add_to_repr: True
+    group:
+      title: Spectral Group
+      type: str
+      required: True
+      add_to_repr: True
+    formats:
+      title: Print Formats
+      type: dict
+      required: True
+    rest_wavelength:
+      title: Rest Wavelength
+      type: int
+      default: null
+    unit:
+      title: Unit
+      type: str
+      default: null
+    scale:
+      title: Scale
+      type: float
+      default: null
+    id:
+      title: ID
+      type: int
+      default: null
+    db_name:
+      title: Database Column Name
+      type: str
+      default: null
+
+objects:
+  # emission line channels
+  - name: oii_3727
+    description: OII line at 3727
+    group: emline
+    formats: {string: 'OII 3727', latex: '$\forb{O\,II}\;\lambda 3727$'}
+    rest_wavelength: 3727
+  - name: oiid_3728
+    description: Single measurement to the (unresolved) OII 3727 doublet feature'
+    group: emline
+    formats: {string: OIId 3728, latex: '$\forb{O\,II}\;\lambda\lambda 3726,3728$'}
+    rest_wavelength: 3728
+  - name: oii_3729
+    description: OII line at 3729
+    group: emline
+    formats: {string: 'OII 3729', latex: '$\forb{O\,II}\;\lambda 3729$'}
+    rest_wavelength: 3729
+  - name: hthe_3798
+    description: H-theta line at 3798
+    group: emline
+    formats: {string: 'H-theta 3798', latex: 'H$\theta\;\lambda 3798$'}
+  - name: heta_3836
+    description: H-eta line at 3836
+    group: emline
+    formats: {string: 'H-eta 3836', latex: 'H$\eta\;\lambda 3836$'}
+  - name: neiii_3869
+    description: NeIII line at 3869
+    group: emline
+    formats: {string: 'NeIII 3869', latex: '$\forb{Ne\,III}\;\lambda 3869$'}
+    rest_wavelength: 3869
+  - name: hei_3889
+    description: HeI line at 3889
+    group: emline
+    formats: {string: 'HeI 3889', latex: 'He\,I$\;\lambda 3889$'}
+    rest_wavelength: 3889
+  - name: hzet_3890
+    description: H-zeta line at 3890
+    group: emline
+    formats: {string: 'H-zeta 3890', latex: 'H$\zeta\;\lambda 3890$'}
+  - name: neiii_3968
+    description: NeIII line at 3968
+    group: emline
+    formats: {string: 'NeIII 3968', latex: '$\forb{Ne\,III}\;\lambda 3968$'}
+    rest_wavelength: 3968
+  - name: heps_3971
+    description: H-epsilon line at 3971
+    group: emline
+    formats: {string: 'H-epsilon 3971', latex: 'H$\epsilon\;\lambda 3971$'}
+    rest_wavelength: 3971
+  - name: hdel_4102
+    description: H-delta line at 4102
+    group: emline
+    formats: {string: 'H-delta 4102', latex: 'H$\delta\;\lambda 4102$'}
+    rest_wavelength: 4102
+  - name: hgam_4341
+    description: H-gamma line at 4341
+    group: emline
+    formats: {string: 'H-gamma 4341', latex: 'H$\gamma\;\lambda 4341$'}
+    rest_wavelength: 4341
+  - name: heii_4687
+    description: HeII line at 4687
+    group: emline
+    formats: {string: 'HeII 4687', latex: 'He\,II$\;\lambda 4687$'}
+    rest_wavelength: 4687
+  - name: hb_4862
+    description: H-beta line at 4862
+    group: emline
+    formats: {string: H-beta 4862, latex: 'H$\beta\;\lambda 4862$'}
+    rest_wavelength: 4862
+  - name: oiii_4960
+    description: OIII line at 4960
+    group: emline
+    formats: {string: 'OIII 4960', latex: '$\forb{O\,III}\;\lambda 4960$'}
+    rest_wavelength: 4960
+  - name: oiii_5008
+    description: OIII line at 5008
+    group: emline
+    formats: {string: 'OIII 5008', latex: '$\forb{O\,III}\;\lambda 5008$'}
+    rest_wavelength: 5008
+  - name: ni_5199
+    description: NI line at 5199
+    group: emline
+    formats: {string: 'NI 5199', latex: '$\forb{N\,I}\;\lambda 5199$'}
+    rest_wavelength: 5199
+  - name: ni_5201
+    description: NI line at 5201
+    group: emline
+    formats: {string: 'NI 5201', latex: '$\forb{N\,I}\;\lambda 5201$'}
+    rest_wavelength: 5201
+  - name: hei_5877
+    description: HeI line at 5877
+    group: emline
+    formats: {string: 'HeI 5877', latex: 'He\,I$\;\lambda 5877$'}
+    rest_wavelength: 5877
+  - name: oi_6302
+    description: OI line at 6302
+    group: emline
+    formats: {string: 'OI 6302', latex: '$\forb{O\,I}\;\lambda 6302$'}
+    rest_wavelength: 6302
+  - name: oi_6365
+    description: OI line at 6365
+    group: emline
+    formats: {string: 'OI 6365', latex: '$\forb{O\,I}\;\lambda 6365$'}
+    rest_wavelength: 6365
+  - name: nii_6549
+    description: NII line at 6549
+    group: emline
+    formats: {string: 'NII 6549', latex: '$\forb{N\,II}\;\lambda 6549$'}
+    rest_wavelength: 6549
+  - name: ha_6564
+    description: H-alpha line at 6564
+    group: emline
+    formats: {string: H-alpha 6564, latex: 'H$\alpha\;\lambda 6564$'}
+    rest_wavelength: 6564
+  - name: nii_6585
+    description: NII line at 6585
+    group: emline
+    formats: {string: 'NII 6585', latex: '$\forb{N\,II}\;\lambda 6585$'}
+    rest_wavelength: 6585
+  - name: sii_6718
+    description: SII line at 6718
+    group: emline
+    formats: {string: 'SII 6718', latex: '$\forb{S\,II}\;\lambda 6718$'}
+    rest_wavelength: 6718
+  - name: sii_6732
+    description: SII line at 6732
+    group: emline
+    formats: {string: 'SII 6732', latex: '$\forb{S\,II}\;\lambda 6732$'}
+    rest_wavelength: 6732
+  - name: siii_8831
+    description: SIII line at 8831
+    group: emline
+    formats: {string: 'SIII 8831', latex: '$\forb{S\,III}\;\lambda 8831$'}
+    rest_wavelength: 8831
+  - name: siii_9071
+    description: SIII line at 9071
+    group: emline
+    formats: {string: 'SIII 9071', latex: '$\forb{S\,III}\;\lambda 9071$'}
+    rest_wavelength: 9071
+  - name: siii_9533
+    description: SIII line at 9533
+    group: emline
+    formats: {string: 'SIII 9533', latex: '$\forb{S\,III}\;\lambda 9533$'}
+    rest_wavelength: 9533
+
+  # spectral index channels
+  - name: caii0p39
+    description: CaII Op39 feature
+    group: specindex
+    formats: {string: 'CaII 0p39'}
+    unit: angstrom
+  - name: d4000
+    description: D4000 Angstrom break feature
+    group: specindex
+    formats: {string: 'D4000'}
+    unit: null
+  - name: dn4000
+    description: Dn4000 Angstrom break feature
+    group: specindex
+    formats: {string: 'Dn4000'}
+    unit: null
+  - name: hdeltaa
+    description: HDelta A feature
+    group: specindex
+    formats: {string: 'HDeltaA', latex: 'H\delta\,A'}
+    unit: angstrom
+  - name: hdeltaf
+    description: HDelta F feature
+    group: specindex
+    formats: {string: 'HDeltaF', latex: 'H\delta\,F'}
+    unit: angstrom
+  - name: cn1
+    description: CN1 feature
+    group: specindex
+    formats: {string: 'CN1'}
+    unit: mag
+  - name: cn2
+    description: CN2 feature
+    group: specindex
+    formats: {string: 'CN2'}
+    unit: mag
+  - name: ca4227
+    description: Ca 4227 line feature
+    group: specindex
+    formats: {string: 'Ca 4227', latex: 'Ca\,\lambda 4227'}
+    unit: angstrom
+    rest_wavelength: 4227
+  - name: g4300
+    description: G4300 absorption feature
+    group: specindex
+    formats: {string: 'G4300', latex: 'G\,\lambda 4300'}
+    unit: angstrom
+    rest_wavelength: 4300
+  - name: hgammaa
+    description: HGamma A feature
+    group: specindex
+    formats: {string: 'HgammaA', latex: 'H\gamma\,A'}
+    unit: angstrom
+  - name: hgammaf
+    description: HGammaF feature
+    group: specindex
+    formats: {string: 'HgammaF', latex: 'H\gamma\,F'}
+    unit: angstrom
+  - name: fe4383
+    description: Fe 4383 absorption feature
+    group: specindex
+    formats: {string: 'Fe 4383', latex: 'Fe\,\lambda 4383'}
+    unit: angstrom
+    rest_wavelength: 4383
+  - name: ca4455
+    description: Ca 4455 absorption feature
+    group: specindex
+    formats: {string: 'Ca 4455', latex: 'Ca\,\lambda 4455'}
+    unit: angstrom
+    rest_wavelength: 4455
+  - name: fe4531
+    description: Fe 4531 absorption feature
+    group: specindex
+    formats: {string: 'Fe 4531', latex: 'Fe\,\lambda 4531'}
+    unit: angstrom
+    rest_wavelength: 4531
+  - name: c24668
+    description: C24668 absorption feature
+    group: specindex
+    formats: {string: 'C24668', latex: 'C2\,\lambda 4668'}
+    unit: angstrom
+    rest_wavelength: 4668
+  - name: fe4668
+    description: Fe 4668 absorption feature
+    group: specindex
+    formats: {string: 'Fe 4668', latex: 'Fe\,\lambda 4668'}
+    unit: angstrom
+    rest_wavelength: 4668
+  - name: hb
+    description: H-beta absorption feature
+    group: specindex
+    formats: {string: 'Hb', latex: 'H\beta'}
+    unit: angstrom
+  - name: fe5015
+    description: Fe 5015 absorption feature
+    group: specindex
+    formats: {string: 'Fe 5015', latex: 'Fe\,\lambda 5015'}
+    unit: angstrom
+    rest_wavelength: 5015
+  - name: mg1
+    description: Mg1 absorption feature
+    group: specindex
+    formats: {string: 'Mg1'}
+    unit: angstrom
+  - name: mg2
+    description: Mg2 absorption feature
+    group: specindex
+    formats: {string: 'Mg2'}
+    unit: angstrom
+  - name: mgb
+    description: MgB absorption feature
+    group: specindex
+    formats: {string: 'Mgb'}
+    unit: angstrom
+  - name: fe5270
+    description: Fe 5270 absorption feature
+    group: specindex
+    formats: {string: 'Fe 5270', latex: 'Fe\,\lambda 5270'}
+    unit: angstrom
+    rest_wavelength: 5270
+  - name: fe5335
+    description: Fe 5335 absorption feature
+    group: specindex
+    formats: {string: 'Fe 5335', latex: 'Fe\,\lambda 5335'}
+    unit: angstrom
+    rest_wavelength: 5335
+  - name: fe5406
+    description: Fe 5406 absorption feature
+    group: specindex
+    formats: {string: 'Fe 5406', latex: 'Fe\,\lambda 5406'}
+    unit: angstrom
+    rest_wavelength: 5406
+  - name: fe5709
+    description: Fe 5709 absorption feature
+    group: specindex
+    formats: {string: 'Fe 5709', latex: 'Fe\,\lambda 5709'}
+    unit: angstrom
+    rest_wavelength: 5709
+  - name: fe5782
+    description: Fe 5782 absorption feature
+    group: specindex
+    formats: {string: 'Fe 5782', latex: 'Fe\,\lambda 5782'}
+    unit: angstrom
+    rest_wavelength: 5782
+  - name: cahk
+    description: CaHK absorption feature
+    group: specindex
+    formats: {string: 'CaHK'}
+    unit: angstrom
+  - name: caii1
+    description: CaII1 absorption feature
+    group: specindex
+    formats: {string: 'CaII1'}
+    unit: angstrom
+  - name: caii2
+    description: CaII2 absorption feature
+    group: specindex
+    formats: {string: 'CaII2'}
+    unit: angstrom
+  - name: caii3
+    description: CaII3 absorption feature
+    group: specindex
+    formats: {string: 'CaII3'}
+    unit: angstrom
+  - name: pa17
+    description: Pa17 absorption feature
+    group: specindex
+    formats: {string: 'Pa17'}
+    unit: angstrom
+  - name: pa14
+    description: Pa14 absorption feature
+    group: specindex
+    formats: {string: 'Pa14'}
+    unit: angstrom
+  - name: pa12
+    description: Pa12 absorption feature
+    group: specindex
+    formats: {string: 'Pa12'}
+    unit: angstrom
+  - name: mgicvd
+    description: MgICvD absorption feature
+    group: specindex
+    formats: {string: 'MgICvD'}
+    unit: angstrom
+  - name: naicvd
+    description: NaICvD absorption feature
+    group: specindex
+    formats: {string: 'NaICvD'}
+    unit: angstrom
+  - name: mgiir
+    description: MgIIR absorption feature
+    group: specindex
+    formats: {string: 'MgIIR'}
+    unit: angstrom
+  - name: fehcvd
+    description: FeHCvD absorption feature
+    group: specindex
+    formats: {string: 'FeHCvD'}
+    unit: angstrom
+  - name: nai
+    description: NaI absorption feature
+    group: specindex
+    formats: {string: 'NaI'}
+    unit: angstrom
+  - name: nad
+    description: NaD absorption feature
+    group: specindex
+    formats: {string: 'NaD'}
+    unit: angstrom
+  - name: tio1
+    description: TiO1 feature
+    group: specindex
+    formats: {string: 'TiO1'}
+    unit: mag
+  - name: tio2
+    description: TiO2 feature
+    group: specindex
+    formats: {string: 'TiO2'}
+    unit: mag
+  - name: atio
+    description: aTiO feature
+    group: specindex
+    formats: {string: 'aTiO'}
+    unit: mag
+  - name: btio
+    description: bTiO feature
+    group: specindex
+    formats: {string: 'bTiO'}
+    unit: mag
+  - name: cah1
+    description: CaH1 feature
+    group: specindex
+    formats: {string: 'CaH1'}
+    unit: mag
+  - name: cah2
+    description: CaH2 feature
+    group: specindex
+    formats: {string: 'CaH2'}
+    unit: mag
+  - name: nai0p82
+    description: NaI 0p82 absorption feature
+    group: specindex
+    formats: {string: 'NaI 0p82'}
+    unit: angstrom
+  - name: caii0p86a
+    description: CaII 0p86A absorption feature
+    group: specindex
+    formats: {string: 'CaII 0p86A'}
+    unit: angstrom
+  - name: caii0p86b
+    description: CaII 0p86B absorption feature
+    group: specindex
+    formats: {string: 'CaII 0p86b'}
+    unit: angstrom
+  - name: caii0p86c
+    description: CaII 0p86C absorption feature
+    group: specindex
+    formats: {string: 'CaII 0p86C'}
+    unit: angstrom
+  - name: mgi0p88
+    description: MgI 0p88 absorption feature
+    group: specindex
+    formats: {string: 'MgI 0p88'}
+    unit: angstrom
+  - name: tio0p89
+    description: TiO 0p89 absorption feature
+    group: specindex
+    formats: {string: 'TiO 0p89'}
+    unit: angstrom
+  - name: feh0p99
+    description: FeH 0p99 absorption feature
+    group: specindex
+    formats: {string: 'FeH 0p99'}
+    unit: angstrom
+  - name: naisdss
+    description: NaISDSS feature
+    group: specindex
+    formats: {string: 'NaISDSS'}
+    unit: angstrom
+  - name: tio2sdss
+    description: TiO2SDSS feature
+    group: specindex
+    formats: {string: 'TiO2SDSS'}
+    unit: angstrom
+  - name: tiocvd
+    description: TiOCvD feature
+    group: specindex
+    formats: {string: 'TiOCvD'}
+    unit: null
+
+  # binid channels for models
+  - name: binned_spectra
+    description: Binned Spectra
+    group: binid
+    formats: {string: 'Binned spectra'}
+    unit: null
+  - name: stellar_continua
+    description: Stellar Continua
+    group: binid
+    formats: {string: 'Stellar continua'}
+    unit: null
+  - name: em_line_moments
+    description: Emission Line Moments
+    group: binid
+    formats: {string: 'Emission line moments'}
+    unit: null
+  - name: em_line_models
+    description: Emission Line Models
+    group: binid
+    formats: {string: 'Emission line models'}
+    unit: null
+  - name: spectral_indices
+    description: Spectral Indices
+    group: binid
+    formats: {string: 'Spectral indices'}
+    unit: null
+
+  # coordinate channels
+  - name: on_sky_x
+    description: On-Sky spaxel X coordinate
+    group: coordinates
+    formats: {string: 'On-sky X'}
+  - name: on_sky_y
+    description: On-Sky spaxel Y coordinate
+    group: coordinates
+    formats: {string: 'On-sky Y'}
+  - name: elliptical_radius
+    description: Elliptical Radius coordinate
+    group: coordinates
+    formats: {string: 'Elliptical radius'}
+    unit: arcsec
+  - name: elliptical_azimuth
+    description: Elliptical Azimuth coordinate
+    group: coordinates
+    formats: {string: 'Elliptical azimuth'}
+    unit: deg
+  - name: r_re
+    description: Ratio of Radius to Effective Radius
+    group: coordinates
+    formats: {string: 'R/Reff'}
+  - name: lum_weighted_on_sky_x
+    description: Light-weighted offset X coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted offset X'}
+    unit: arcsec
+  - name: lum_weighted_on_sky_y
+    description: Light-weighted offset Y coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted offset Y'}
+    unit: arcsec
+  - name: lum_weighted_elliptical_radius
+    description: Light-Weighted Elliptical Radius coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted radial offset'}
+    unit: arcsec
+  - name: lum_weighted_elliptical_azimuth
+    description: Light-Weighted Elliptical Azimuth coordinate
+    group: coordinates
+    formats: {string: 'Light-weighted azimuthal offset'}
+    unit: deg
+
+  # merit channels
+  - name: 68th_percentile
+    description: 68th Percentile
+    group: figure_of_merit
+    formats: {string: '68th percentile', latex: '68^{th} percentile'}
+  - name: 99th_percentile
+    description: 99th Percentile
+    group: figure_of_merit
+    formats: {string: '99th percentile', latex: '99^{th} percentile'}
+  - name: rms
+    description: RMS of the residuals for all fitted pixels in the stellar continuum.
+    group: figure_of_merit
+    formats: {string: 'RMS of residuals for fitted pixels', latex: 'RMS of residuals'}
+    unit: erg / (second * cm**2 * angstrom * spaxel)
+    scale: 1e-17
+  - name: frms
+    description: Fractional residuals for the stellar continuum fit.
+    group: figure_of_merit
+    formats: {string: 'RMS of the fractional residuals', latex: 'RMS of the fractional residuals'}
+  - name: rchi2
+    description: Reduced chi-square of the stellar continuum fit.
+    group: figure_of_merit
+    formats: {string: 'Stellar continuum reduced chi-square', latex: 'Stellar\ continuum\ reduced\ \chi^2'}
+  - name: fresid_68th_percentile
+    description: 68%% growth of the fractional residuals between the model and data.
+    group: figure_of_merit
+    formats: {string: '68th percentile', latex: '68^{th} percentile'}
+    db_name: 68th_perc_frac_resid
+  - name: fresid_99th_percentile
+    description: 99%% growth of the fractional residuals between the model and data.
+    group: figure_of_merit
+    formats: {string: '99th percentile Frac. Residuals', latex: '99^{th} percentile Frac. Residuals'}
+    db_name: 99th_perc_frac_resid
+  - name: fresid_max
+    description: Maximum growth of the fractional residuals between the model and data.
+    group: figure_of_merit
+    formats: {string: 'Max Fractional Residual', latex: 'Max Fractional Residual'}
+    db_name: max_frac_resid
+  - name: per_pix_chi_68th_percentile
+    description: 68%% growth of the error-normalized residuals
+    group: figure_of_merit
+    formats: {string: '68th percentile', latex: '68^{th} percentile'}
+    db_name: 68th_perc_per_pix_chi
+  - name: per_pix_chi_99th_percentile
+    description: 99%% growth of the error-normalized residuals
+    group: figure_of_merit
+    formats: {string: '99th percentile', latex: '99^{th} percentile'}
+    db_name: 99th_perc_per_pix_chi
+  - name: per_pix_chi_max
+    description: Maximum growth of the error-normalized residuals
+    group: figure_of_merit
+    formats: {string: 'Max Error-Normalized Residuals', latex: 'Max Error-Normalized Residuals'}
+    db_name: max_per_pix_chi
+  - name: resolution_difference
+    description: Resolution Difference
+    group: figure_of_merit
+    formats: {string: 'Resolution Difference'}
+  - name: fit
+    description: Fit
+    group: figure_of_merit
+    formats: {string: 'Fit'}
+

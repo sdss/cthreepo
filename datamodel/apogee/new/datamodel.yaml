@@ -1,0 +1,8 @@
+name: apoee datamodel
+description: list of apogee newdatamodel attributes
+schema:
+  newapo:
+    name: Apogee-NEW
+    kind: list
+    required: False
+    group: Default

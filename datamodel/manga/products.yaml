@@ -1,0 +1,138 @@
+# manga cube
+cube:
+  name: CUBE
+  short: A MaNGA DataCube
+  description: |
+    This is 3d spectral datacube, with two spatial dimensions and one spectral dimension.
+    
+    The MaNGA DRP provides regularly-gridded cubes (with both logarithmic and linear wavelength 
+    solutions) that combine information from all exposures of a given galaxy.  The cubes are 
+    three-dimensional arrays in which the first and second dimensions are spatial (with regular 0.5 
+    arcsec square spaxels) and the third dimension represents wavelength.
+  datatype: fits
+  path_name: mangacube
+  path_kwargs: {plate: 8485, ifu: 1901, drpver: v2_4_3, wave: LOG}
+  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGCUBE.fits.gz
+  versions: &ver [MPL1, MPL2, MPL3, MPL4, DR13, MPL5, DR14, MPL6, MPL7, DR15, MPL8]
+  # this is example of changelog utilizing the defaults dict
+  defaults:
+    wavelengths: [LOG, LIN]
+  changelog:
+    MPL1: &owave
+      wavelengths: [LOG]
+    MPL2:
+      <<: *owave
+    MPL3:
+      <<: *owave
+
+# manga rss
+rss:
+  name: RSS
+  short: A MaNGA Row-Stacked Spectra
+  description: this is a manga rss file
+  datatype: fits
+  path_name: mangarss
+  path_kwargs: {plate: 8485, ifu: 1901, wave: LOG}
+ # example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/manga-8485-1901-LOGRSS.fits.gz
+  versions: *ver
+  # this is an example of an explicit changelog
+  changelog:
+    MPL1: &logwave 
+      wavelengths: [LOG]
+    MPL2:
+      <<: *logwave
+    MPL3:
+      <<: *logwave 
+    MPL4: &wave
+      wavelengths: [LOG, LIN]
+    DR13: 
+      <<: *wave
+    MPL5: 
+      <<: *wave 
+    DR14: 
+      <<: *wave 
+    MPL6: 
+      <<: *wave 
+    MPL7: 
+      <<: *wave 
+    DR15: 
+      <<: *wave 
+    MPL8: 
+      <<: *wave 
+
+# manga image
+image: 
+  name: Image
+  short: MaNGA optical image
+  description: this is a manga optical PNG image based on SDSS gri cutout service
+  datatype: image
+  path_name: mangaimage
+  example: mangawork/manga/spectro/redux/v2_4_3/8485/stack/images/1901.png
+  versions: [MPL2, MPL3, MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+  changelog:
+    MPL8:
+      example: mangawork/manga/spectro/redux/v2_4_3/8485/images/1901.png
+
+# manga maps
+maps:
+  name: MAPS
+  short: A MaNGA DAP maps object
+  description: this is a manga dap map file
+  datatype: fits
+  versions: [MPL4, MPL5, MPL6, MPL7, DR15, MPL8]
+  # this is an example of a changelog where everything changes 
+  changelog: &dapchange
+    MPL4:
+      path_name: mangamap
+      path_kwargs: {plate: 8485, ifu: 1901, mode: MAPS, n: 13, bintype: NONE}
+      bintypes: [NONE, RADIAL, STON]
+      templates: [M11-STELIB-ZSOL, MIUSCAT-THIN, MILES-THIN]
+      default_bintype: NONE
+      default_template: MIUSCAT-THIN
+      emline_channels: [oiid_3728, hb_4862, oiii_4960, oiii_5008, oi_6302, oi_6365, nii_6549, ha_6564, nii_6585, sii_6718, sii_6732]
+      specindex_channels: [d4000, caii0p39, hdeltaa, cn1, cn2, ca4227, hgammaa, fe4668, hb, mgb, fe5270, fe5335, fe5406, nad, tio1, tio2, nai0p82, caii0p86a, caii0p86b, caii0p86c, mgi0p88, tio0p89, feh0p99]
+    MPL5: &mpl5
+      example: mangawork/manga/spectro/analysis/v2_0_1/2.0.2/SPX-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-SPX-GAU-MILESHC.fits.gz
+      path_name: mangadap
+      bintypes: [SPX, VOR10, ALL, NRE]
+      templates: [GAU-MILESHC]
+      default_bintype: SPX
+      default_template: GAU-MILESHC
+      emline_channels: MPL4 += [oii_3727, oii_3729, heps_3971, hdel_4102, hgam_4341, heii_4687, hei_5877, siii_8831, siii_9071, siii_9533]
+      specindex_channels: [d4000, dn4000]
+      merit_channels: [68th_percentile, 99th_percentile]
+      coordinate_channels: [on_sky_x, on_sky_y, elliptical_radius, elliptical_azimuth, lum_weighted_on_sky_x, lum_weighted_on_sky_y, lum_weighted_elliptical_radius, lum_weighted_elliptical_azimuth]
+    MPL6: &mpl6
+      <<: *mpl5
+      bintypes: MPL5 += HYB10
+      binid_channels: [binned_spectra, stellar_continua, em_line_moments, em_line_models, spectral_indices]
+      emline_channels: [oiid_3728, oii_3727, oii_3729,  hthe_3798,  heta_3836, neiii_3869,  hzet_3890,  neiii_3968,  heps_3971,  hdel_4102,  hgam_4341,  heii_4687,  hb_4862,  oiii_4960,  oiii_5008,  hei_5877,  oi_6302,  oi_6365,  nii_6549,  ha_6564,  nii_6585,  sii_6718,  sii_6732] 
+      specindex_channels: [cn1, cn2, ca4227, g4300, fe4383, ca4455, fe4531, c24668, hb, fe5015, mg1, mg2, mgb, fe5270, fe5335, fe5406, fe5709, fe5782, nad, tio1, tio2, hdeltaa, hgammaa, hdeltaf, hgammaf, cahk, caii1, caii2, caii3, pa17, pa14, pa12, mgicvd, naicvd, mgiir, fehcvd, nai, btio, atio, cah1, cah2, naisdss, tio2sdss, d4000, dn4000, tiocvd]
+      coordinate_channels: MPL5 += [r_re]
+    MPL7: &dr15
+      <<: *mpl6
+      bintypes: [HYB10, VOR10]
+      default_bintype: HYB10
+      example: mangawork/manga/spectro/analysis/v2_4_3/2.2.1/HYB10-GAU-MILESHC/8485/1901/manga-8485-1901-MAPS-HYB10-GAU-MILESHC.fits.gz
+    DR15: 
+      <<: *dr15
+    MPL8:
+      example: mangawork/manga/spectro/analysis/v2_5_3/2.3.0/HYB10-MILESHC-MILESHC/8485/1901/manga-8485-1901-MAPS-HYB10-MILESHC-MILESHC.fits.gz
+      templates: [MILESHC-MILESHC]
+      bintypes: MPL7 += SPX 
+      default_bintype: HYB10
+      default_template: MILESHC-MILESHC
+      emline_channels: MPL7 += [hei_3889, ni_5199, ni_5201]
+      merit_channels: [rms, frms, rchi2, fresid_68th_percentile, fresid_99th_percentile, fresid_max, per_pix_chi_68th_percentile, per_pix_chi_99th_percentile, per_pix_chi_max]
+
+      
+# manga modelcube
+modelcube:
+  name: MODELCUBE
+  short: A MaNGA DAP modelcube object
+  description: this is a manga dap modelcube file
+  datatype: fits
+  versions: [MPL5, MPL6, MPL7, DR15, MPL8]
+  changelog:
+    <<: *dapchange
+    MPL4: null

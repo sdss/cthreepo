@@ -1,0 +1,40 @@
+schema:
+  title: Wavelength
+  key: wavelength
+  description: the wavelength sampling
+  properties:
+    name:
+      title: Name
+      description: The name of the sampling type
+      required: True
+      type: str
+    description:
+      title: Description
+      description: a short description of the sampling
+      required: True
+      type: str
+    nwave:
+      title: NumWave
+      description: the number of wavelength elements in the array
+      type: int
+    wmin:
+      title: Min. Wavelength
+      description: the minimum wavelength element
+      type: float
+    wmax:
+      title: Max. Wavelength
+      description: the maximum wavelength element
+      type: float
+
+objects:
+  - name: LOG
+    description: logarithmic wavelength sampling from log10(lambda/Angstroms)=3.5589 to 4.0151
+    nwave: 4563
+    wmin: 3.5589
+    wmax: 4.0151
+  - name: LIN
+    description: linear wavelength sampling from 3622 to 10353 Angstroms
+    nwave: 6732
+    wmin: 3622
+    wmax: 10353
+
