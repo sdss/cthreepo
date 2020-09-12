@@ -21,13 +21,15 @@ import yaml
 def get_yaml_files(path: str, get: str = 'products') -> list:
     ''' Find valid yaml files
 
-    Parameters:
+    Parameters
+    ----------
         path : str
             A filepath to a yaml datamodel
         get : str
             A name of the yaml file to find
 
-    Returns:
+    Returns
+    -------
         A list of all available yaml files
     '''
     assert get in ['datamodel', 'products', 'models']
@@ -47,10 +49,13 @@ def get_yaml_files(path: str, get: str = 'products') -> list:
 def read_yaml(ymlfile: str) -> dict:
     ''' Opens and reads a yaml datamodel file
 
-    Parameters:
+    Parameters
+    ----------
         ymlfile : str
+            the yaml filepath
 
-    Returns:
+    Returns
+    -------
         dictionary contents of yaml file
     '''
 
@@ -67,7 +72,7 @@ def read_yaml(ymlfile: str) -> dict:
     return data
 
 
-def parse_value(key, value, data, versions):
+def parse_value(key: str, value: list, data: dict, versions: list) -> dict:
     ''' parse a value for versions '''
 
     if not isinstance(value, str):
