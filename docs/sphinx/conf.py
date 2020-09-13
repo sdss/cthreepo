@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.abspath('../../python/cthreepo/datamodel/'))
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary',
               'sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.mathjax',
-              'sphinx.ext.intersphinx', 'docudatamodel', 'recipe']
+              'sphinx.ext.intersphinx', 'docudatamodel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

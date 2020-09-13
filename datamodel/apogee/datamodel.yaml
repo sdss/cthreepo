@@ -1,0 +1,10 @@
+name: apoee datamodel
+description: list of apogee datamodel attributes
+schema:
+  apogee:
+    name: Apogee
+    kind: list
+    required: False
+    group: Default
+
+
