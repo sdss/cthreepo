@@ -1,6 +1,6 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Filename: yaml.py
 # Project: utils
 # Author: Brian Cherinka

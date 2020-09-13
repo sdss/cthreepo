@@ -1,6 +1,6 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Filename: products.py
 # Project: core
 # Author: Brian Cherinka
@@ -79,7 +79,7 @@ class BaseProduct(object):
             rev_list = list(reversed(exists))
             if len(exists) != len(verlist):
                 log.warning('One or more product files do not exist. Changelog will be incomplete')
-            
+
             self._changes = compute_changelog(rev_list, change=self.datatype)
         return self._changes
 
@@ -121,7 +121,7 @@ class BaseProduct(object):
                 # assert example or 'path_kwargs' in attrs, ('Must have an example or path_kwargs set'
                 #                                            ' to expand products using path_name')
                 if not example and 'path_kwargs' not in attrs:
-                    log.warning('No example path or path_kwargs found in product yaml definition. ' 
+                    log.warning('No example path or path_kwargs found in product yaml definition. '
                                 'Cannot expand Fits product. Defaulting to base Object.')
                     inst = BaseObject(product=self.name, version=version)
                     return inst
@@ -346,13 +346,13 @@ def generate_products(ymlfile, name=None, make_fuzzy=True, models=None):
     # check validation on changelog attribute
     if 'changelog' in schema._declared_fields:
         key = schema._declared_fields['changelog']
-        if not key.key_container.validators:
+        if not key.key_field.validators:
             versions = list(objects)[0]['versions']
-            key.key_container = fields.String(validate=validate.OneOf(versions))
+            key.key_field = fields.String(validate=validate.OneOf(versions))
             schema._declared_fields['changelog'] = key
-    
+
     # deserialize the object
-    models = schema().load(objects, many=many)
+    models = schema(many=many).load(objects, many=many)
 
     if make_fuzzy and isinstance(models, list):
         models = ProductList(models)

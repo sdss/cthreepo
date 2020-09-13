@@ -120,7 +120,7 @@ class VDataModelList(FuzzyList):
     def mapper(self, item):
         version = str(item.release).lower().replace('.', '_')
         return version
-    
+
     @property
     def releases(self):
         return [str(item.release) for item in self]
@@ -129,10 +129,10 @@ class VDataModelList(FuzzyList):
 class SDSSDataModelList(FuzzyList):
     def mapper(self, item):
         return str(item.survey.lower())
-    
+
     def organize_by_release(self, public=None):
         ''' organize the datamodel by release '''
-        # TODO - fix the return object 
+        # TODO - fix the return object
         # create the data
         data = []
         for item in self:

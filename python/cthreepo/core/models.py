@@ -1,6 +1,6 @@
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Filename: models.py
 # Project: core
 # Author: Brian Cherinka
@@ -14,6 +14,8 @@
 from __future__ import print_function, division, absolute_import
 import re
 import six
+import orjson
+#import toastedmarshmallow
 from marshmallow import Schema, fields, post_load
 from cthreepo.core.structs import FuzzyList
 
@@ -32,9 +34,11 @@ class BaseSchema(Schema):
 
     class Meta:
         ordered = True
+        render_module = orjson
+        #jit = toastedmarshmallow.Jit
 
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         ''' this function deserializes a schema to a class object '''
         return self._class(**data)
 
@@ -48,7 +52,7 @@ class ObjectField(fields.Field):
     For example, the yaml string representation 'LOG' for a log-linear wavelength will get
     deserialized into an instance Wavelength('LOG'). Custom fields are described at
     https://marshmallow.readthedocs.io/en/3.0/custom_fields.html.
-    
+
     '''
 
     def _serialize(self, value, attr, obj, **kwargs):
@@ -67,9 +71,9 @@ class ObjectField(fields.Field):
 
 def _get_attr(obj, name):
     ''' Get an attribute from a class object
-    
+
     Attempts to retrieve an attribute from a class object
-    
+
     Parameters:
         obj (object):
             A class object to access
@@ -144,11 +148,11 @@ def parse_kind(value):
     Parses the schema "kind" attribute into a kind and subkind if
     kind contain paranetheses, i.e. kind(subkind).  For example,
     list(objects) return kind=list, subkind=objects.
-    
+
     Parameters:
         value (str):
             The type of field
-    
+
     Returns:
         A tuple of the field type and any sub-type
     '''
@@ -169,17 +173,17 @@ def parse_kind(value):
 
 def get_field(value, key=None):
     ''' Get a Marshmallow Fields type
-    
+
     Using the model schema attribute "kind" parameter, determines the
     appropriate marshmallow field type.  If the value is "Objects"
-    then it uses a custom ObjectField definition.     
+    then it uses a custom ObjectField definition.
 
     Parameters:
         value (str):
             The kind of field to retrieve, e.g. string
         key (str):
             The name of the attribute for the field
-            
+
     Returns:
         a marshmallow field class
     '''
@@ -187,14 +191,14 @@ def get_field(value, key=None):
         field = fields.__getattribute__(value)
         return field
     elif value == 'Objects':
-        return ObjectField(key)
+        return ObjectField(data_key=key)
     else:
         raise ValueError(f'Marshmallow Fields does not have {value}')
 
 
 def create_field(data, key=None, required=None, nodefault=None):
     ''' creates a marshmallow.fields object
-    
+
     Parameters:
         data (dict):
             A values dictionary for a given model attribute
@@ -242,7 +246,7 @@ def create_field(data, key=None, required=None, nodefault=None):
 
 def create_schema(data, mixin=None):
     ''' creates a new class for schema validation
-    
+
     Constructs a marshmallow schema class object used to validate
     the creation of new Python objects for this class.  Takes a
     model "schema" dictionary and builds new Python classes to represent
@@ -255,7 +259,7 @@ def create_schema(data, mixin=None):
             The schema dictonary section of a yaml file
         mixin (object):
             A custom model class to mixin with base model
-    
+
     Returns:
         A marshmallow schema class object
     '''
@@ -285,12 +289,12 @@ def create_schema(data, mixin=None):
 
 def generate_models(data, make_fuzzy=True, mixin=None):
     ''' Generate a list of datamodel types
-    
+
     Converts a models yaml file, e.g. manga/versions.yaml, into a list of Python instances.
     A model Schema class is created using the "schema" section of the yaml file.  The schema
     class is used to validate and instantiate the list of objects defined in the "objects"
     section.
-    
+
     Parameters:
         data (dict):
             A yaml loaded data structure
@@ -306,10 +310,10 @@ def generate_models(data, make_fuzzy=True, mixin=None):
     schema = create_schema(data['schema'], mixin=mixin)
 
     # validate and deserialize the model data in Python objects
-    models = schema().load(data['objects'], many=True)
+    models = schema(many=True).load(data['objects'], many=True)
 
-    # optionally make the model list fuzzy
-    if make_fuzzy:
-        models = FuzzyList(models)
+    # # optionally make the model list fuzzy
+    # if make_fuzzy:
+    #     models = FuzzyList(models)
     return models
 
