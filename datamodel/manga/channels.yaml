@@ -1,45 +1,45 @@
 schema:
-  title: Channel
+  name: Channel
   key: channel
   description: Spectral line channels used in fitting
-  properties:
+  attributes:
     name:
-      title: Name
+      name: Name
       required: True
-      type: str
+      kind: string
     description:
-      title: Description
+      name: Description
       required: True
-      type: str
+      kind: string
       add_to_repr: True
     group:
-      title: Spectral Group
-      type: str
+      name: Spectral Group
+      kind: string
       required: True
-      add_to_repr: True
+      add_to_repr: True 
     formats:
-      title: Print Formats
-      type: dict
+      name: Print Formats
+      kind: dict
       required: True
     rest_wavelength:
-      title: Rest Wavelength
-      type: int
+      name: Rest Wavelength
+      kind: integer
       default: null
     unit:
-      title: Unit
-      type: str
+      name: Unit
+      kind: string
       default: null
     scale:
-      title: Scale
-      type: float
+      name: Scale
+      kind: float
       default: null
     id:
-      title: ID
-      type: int
+      name: ID
+      kind: integer
       default: null
     db_name:
-      title: Database Column Name
-      type: str
+      name: Database Column Name
+      kind: string
       default: null
 
 objects:
@@ -125,12 +125,12 @@ objects:
     description: NI line at 5199
     group: emline
     formats: {string: 'NI 5199', latex: '$\forb{N\,I}\;\lambda 5199$'}
-    rest_wavelength: 5199
+    rest_wavelength: 5199 
   - name: ni_5201
     description: NI line at 5201
     group: emline
     formats: {string: 'NI 5201', latex: '$\forb{N\,I}\;\lambda 5201$'}
-    rest_wavelength: 5201
+    rest_wavelength: 5201 
   - name: hei_5877
     description: HeI line at 5877
     group: emline

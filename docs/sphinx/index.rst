@@ -2,7 +2,8 @@
 cthreepo's documentation
 =============================================
 
-This is the documentation for the SDSS Python product cthreepo. The current version is |cthreepo_version|. You can install the package by doing
+This is the documentation for the SDSS Python product cthreepo. The current version is
+|cthreepo_version|. You can install the package by doing
 
 .. code-block:: console
 
@@ -17,7 +18,8 @@ Contents
 
   What's new in cthreepo? <CHANGELOG>
   Introduction to cthreepo <intro>
-
+  DataModels <datamodels/index>
+  Example Products <datamodels/products>
 
 Reference
 ---------

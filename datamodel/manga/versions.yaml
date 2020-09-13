@@ -1,22 +1,19 @@
 schema:
-  title: Version
+  name: Version
   key: version
   description: MaNGA release versions
-  properties:
+  attributes:
     release:
-      title: release
-      description: The release name, e.g a DR or MPL
-      type: str
+      name: release
+      kind: string
       required: True
     drpver:
-      title: drpver
-      description: The version of the DRP pipeline
-      type: str
+      name: drpver
+      kind: string
       required: True
     dapver:
-      title: dapver
-      description: The version of the DAP pipeline
-      type: str
+      name: dapver
+      kind: string
       default: null
 
 objects:

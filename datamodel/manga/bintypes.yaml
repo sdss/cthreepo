@@ -1,24 +1,24 @@
 schema:
-  title: Bintype
+  name: Bintype
   key: bintype
   description: An IFU binning scheme
-  properties:
+  attributes:
     name:
-      title: Name
+      name: Name
       required: True
-      type: str
+      kind: string
     description:
-      title: Description
+      name: Description
       required: True
-      type: str
+      kind: string
     binned:
-      title: Binned
+      name: Binned
       default: True
-      type: bool
+      kind: boolean
       add_to_repr: True
     n:
-      title: Niter
-      type: int
+      name: Niter
+      kind: integer
       default: null
 
 objects:

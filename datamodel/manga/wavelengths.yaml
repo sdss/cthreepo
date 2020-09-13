@@ -1,30 +1,25 @@
 schema:
-  title: Wavelength
+  name: Wavelength
   key: wavelength
-  description: the wavelength sampling
-  properties:
+  description: wavelength sampling
+  attributes:
     name:
-      title: Name
-      description: The name of the sampling type
+      name: Name
       required: True
-      type: str
+      kind: string
     description:
-      title: Description
-      description: a short description of the sampling
+      name: Description
       required: True
-      type: str
+      kind: string
     nwave:
-      title: NumWave
-      description: the number of wavelength elements in the array
-      type: int
+      name: NumWave
+      kind: integer
     wmin:
-      title: Min. Wavelength
-      description: the minimum wavelength element
-      type: float
+      name: Min. Wavelength
+      kind: float
     wmax:
-      title: Max. Wavelength
-      description: the maximum wavelength element
-      type: float
+      name: Max. Wavelength
+      kind: float
 
 objects:
   - name: LOG
@@ -37,4 +32,3 @@ objects:
     nwave: 6732
     wmin: 3622
     wmax: 10353
-

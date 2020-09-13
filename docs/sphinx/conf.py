@@ -10,7 +10,7 @@
 # serve to show the default.
 
 import os
-
+import sys
 from pkg_resources import parse_version
 
 try:
@@ -19,6 +19,8 @@ except ModuleNotFoundError:
     from sdsstools import get_package_version
     __version__ = get_package_version(__file__, 'sdss-cthreepo') or 'dev'
 
+# adding a path custom documentation extension
+sys.path.insert(0, os.path.abspath('../../python/cthreepo/datamodel/'))
 
 # Are we building in RTD?
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
@@ -47,7 +49,7 @@ if sphinx_template == 'sphinx-bootstrap':
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary',
               'sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.mathjax',
-              'sphinx.ext.intersphinx']
+              'sphinx.ext.intersphinx', 'docudatamodel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

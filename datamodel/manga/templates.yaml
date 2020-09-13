@@ -1,19 +1,19 @@
 schema:
-  title: Template
+  name: Template
   key: template
   description: Stellar Template library used in Fitting
-  properties:
+  attributes:
     name:
-      title: Name
+      name: Name
       required: True
-      type: str
+      kind: string
     description:
-      title: Description
+      name: Description
       required: True
-      type: str
+      kind: string
     n:
-      title: Niter
-      type: int
+      name: Niter
+      kind: integer
       default: null
 
 objects:
@@ -22,10 +22,10 @@ objects:
     n: 0
   - name: MIUSCAT-THIN
     description: MIUSCAT stellar template.
-    n: 1
+    n: 1 
   - name: MILES-THIN
     description: MILES stellar template.
-    n: 2
+    n: 2       
   - name: GAU-MILESHC
     description: Set of stellar templates derived from the MILES library.
   - name: MILESHC-MILESHC
